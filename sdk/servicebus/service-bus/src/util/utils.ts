@@ -94,6 +94,17 @@ export function calculateRenewAfterDuration(lockedUntilUtc: Date): number {
   return renewAfter;
 }
 
+
+export function convertTicksToDateWithBigInt(buf: number[]): Date {
+  const epochMicroDiff = 621355968000000000n;
+  const longValue: bigint = fromEightBytesBE(buf);
+  const timeInMS = (longValue - epochMicroDiff) / 10000n;
+  const result = new Date(Number(timeInMS));
+  logger.verbose("The converted date is: %s", result.toString());
+  return result;
+}
+
+
 /**
  * @internal
  * Converts the .net ticks to a JS Date object.

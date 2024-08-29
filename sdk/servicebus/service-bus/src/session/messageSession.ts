@@ -23,7 +23,7 @@ import { OnAmqpEventAsPromise, OnError, OnMessage } from "../core/messageReceive
 import { receiverLogger as logger } from "../log";
 import { DispositionType, ServiceBusMessageImpl } from "../serviceBusMessage";
 import { throwErrorIfConnectionClosed } from "../util/errors";
-import { calculateRenewAfterDuration, convertTicksToDate } from "../util/utils";
+import { calculateRenewAfterDuration, convertTicksToDate, convertTicksToDateWithBigInt } from "../util/utils";
 import { BatchingReceiverLite, MinimalReceiver } from "../core/batchingReceiver";
 import { onMessageSettled, DeferredPromiseAndTimer, createReceiverOptions } from "../core/shared";
 import { AbortError, AbortSignalLike } from "@azure/abort-controller";
@@ -333,6 +333,12 @@ export class MessageSession extends LinkEntity<Receiver> {
       this.sessionLockedUntilUtc = convertTicksToDate(
         this.link.properties["com.microsoft:locked-until-utc"],
       );
+      // bigint-test:
+      const val = convertTicksToDateWithBigInt(this.link.properties["com.microsoft:locked-until-utc"]);
+      if (val.getTime() !== this.sessionLockedUntilUtc.getTime()) {
+        console.error(`################ convertTicksToDateWithBigInt() return different result.`);
+        console.dir(this.link.properties["com.microsoft:locked-until-utc"]);
+      }
       logger.verbose(
         "%s Session with id '%s' is locked until: '%s'.",
         this.logPrefix,
