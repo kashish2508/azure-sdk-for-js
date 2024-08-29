@@ -25,4 +25,4 @@ extends:
             - eng/common/TestResources/sub-config/AzureChinaMsft.json
           Location: 'chinaeast'
       EnvVars:
-        MatrixJobFilter: ubuntu2004_20x_node
+        jobMatrixFilter: ubuntu2004_20x_node
