@@ -1,14 +1,10 @@
 # Release History
 
-## 1.0.0-beta.3 (Unreleased)
-
-### Features Added
-
-### Breaking Changes
-
-### Bugs Fixed
+## 1.0.0-beta.3 (2025-08-06)
 
 ### Other Changes
+
+- Reporting feature is now disabled by default.
 
 ## 1.0.0-beta.2 (2024-11-19)
 
