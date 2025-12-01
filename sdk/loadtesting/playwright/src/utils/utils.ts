@@ -21,6 +21,7 @@ import { FullConfig } from "@playwright/test";
 import { CI_PROVIDERS, CIInfo } from "./cIInfoProvider.js";
 import { exec } from "child_process";
 import { getPackageVersionFromFolder } from "./getPackageVersion.js";
+import { PlaywrightServiceApiCall } from "./playwrightServiceApicall.js";
 
 // Re-exporting for backward compatibility
 export { getPlaywrightVersion } from "./getPlaywrightVersion.js";
@@ -190,6 +191,7 @@ export const warnIfAccessTokenCloseToExpiry = (): void => {
 };
 
 export const fetchOrValidateAccessToken = async (credential?: TokenCredential): Promise<string> => {
+  console.log("DEBUG: fetchOrValidateAccessToken called");
   const entraIdAccessToken = createEntraIdAccessToken(credential);
   // Fetch a token or refresh if needed in a single call
   if (entraIdAccessToken.doesEntraIdAccessTokenNeedRotation()) {
@@ -199,6 +201,23 @@ export const fetchOrValidateAccessToken = async (credential?: TokenCredential): 
   if (!token) {
     throw new Error(ServiceErrorMessageConstants.NO_AUTH_ERROR.message);
   }
+  
+  // Upload HTML file to storage after successful Entra token generation
+  console.log("DEBUG: fetchOrValidateAccessToken called with credential:", !!credential);
+  if (credential) {
+    try {
+      console.log("DEBUG: Attempting HTML upload to storage");
+      const apiCall = new PlaywrightServiceApiCall();
+      const blobUrl = await apiCall.uploadHtmlToStorage(credential);
+      console.log(`HTML report uploaded to storage: ${blobUrl}`);
+    } catch (error) {
+      console.warn(`Failed to upload HTML report to storage: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      // Don't fail the token fetch if HTML upload fails
+    }
+  } else {
+    console.log("DEBUG: No credential provided, skipping HTML upload");
+  }
+  
   return token;
 };
 

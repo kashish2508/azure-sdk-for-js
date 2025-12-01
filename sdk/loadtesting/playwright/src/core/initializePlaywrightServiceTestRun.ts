@@ -29,6 +29,12 @@ export async function initializePlaywrightServiceTestRun(config: FullConfig): Pr
     ciConfig: ciConfigInfo,
   };
 
-  // Create/update test run in the service
-  await playwrightServiceApiClient.patchTestRunAPI(testRunCreatePayload);
+  // Create/update test run in the service and upload HTML if credential is available
+  const credential = playwrightServiceConfig.credential;
+  console.log("DEBUG: Retrieved credential for HTML upload:", credential ? "Present" : "Not Present");
+  if (credential) {
+    await playwrightServiceApiClient.patchTestRunAPIWithUpload(testRunCreatePayload, credential);
+  } else {
+    await playwrightServiceApiClient.patchTestRunAPI(testRunCreatePayload);
+  }
 }
