@@ -4,7 +4,6 @@ import {
   getTestRunApiUrl,
   getAccessToken,
   extractErrorMessage,
-  exitWithFailureMessage,
 } from "./utils.js";
 import { HttpService } from "../common/httpService.js";
 import { TestRunCreatePayload } from "../common/types.js";
@@ -38,19 +37,26 @@ export class PlaywrightServiceApiCall {
     const contentType = "application/merge-patch+json";
     const correlationId = crypto.randomUUID();
 
-    const response = await this.httpService.callAPI(
-      method,
-      url.toString(),
-      data,
-      token,
-      contentType,
-      correlationId,
-    );
-    if (response.status !== 200) {
-      const errorMessage = extractErrorMessage(response?.bodyAsText ?? "");
-      exitWithFailureMessage(ServiceErrorMessageConstants.FAILED_TO_CREATE_TEST_RUN, errorMessage);
+    try {
+      const response = await this.httpService.callAPI(
+        method,
+        url.toString(),
+        data,
+        token,
+        contentType,
+        correlationId,
+      );
+      if (response.status !== 200) {
+        const errorMessage = extractErrorMessage(response?.bodyAsText ?? "");
+        console.error(`Warning: ${ServiceErrorMessageConstants.FAILED_TO_CREATE_TEST_RUN.message}: ${errorMessage}. Tests will continue without test run creation.`);
+        return null;
+      }
+      console.log("Test run created successfully.");
+      return response.bodyAsText ? JSON.parse(response.bodyAsText) : {};
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error(`Warning: Failed to create test run due to network or API error: ${errorMessage}. Tests will continue without test run creation.`);
+      return null;
     }
-    console.log("Test run created successfully.");
-    return response.bodyAsText ? JSON.parse(response.bodyAsText) : {};
   }
 }
