@@ -11,6 +11,9 @@ import { TestRunCreatePayload } from "../common/types.js";
 import { ServiceErrorMessageConstants } from "../common/messages.js";
 import { Constants } from "../common/constants.js";
 import { BlobServiceClient } from "@azure/storage-blob";
+import { readFileSync, existsSync } from "fs";
+import { join } from "path";
+import { PlaywrightServiceConfig } from '../common/playwrightServiceConfig.js';
 
 /**
  * Makes a PATCH call to the Playwright workspaces Test Run API to create or update a test run.
@@ -24,23 +27,6 @@ export class PlaywrightServiceApiCall {
 
   constructor(httpService?: HttpService) {
     this.httpService = httpService ?? new HttpService();
-  }
-
-  async patchTestRunAPIWithUpload(payload: TestRunCreatePayload, credential?: any): Promise<any> {
-    const result = await this.patchTestRunAPI(payload);
-    
-    // If credential is provided, upload HTML file to storage
-    if (credential) {
-      try {
-        const blobUrl = await this.uploadHtmlToStorage(credential);
-        console.log(`HTML report uploaded to: ${blobUrl}`);
-      } catch (error) {
-        console.warn(`Failed to upload HTML report: ${error instanceof Error ? error.message : 'Unknown error'}`);
-        // Don't fail the test run creation if HTML upload fails
-      }
-    }
-    
-    return result;
   }
 
   async patchTestRunAPI(payload: TestRunCreatePayload): Promise<any> {
@@ -101,23 +87,14 @@ export class PlaywrightServiceApiCall {
       await containerClient.createIfNotExists();
       
       console.log("containerClient1 :",containerClient)
-      // Default HTML content if not provided
-      const defaultHtmlContent = `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Playwright Test Report</title>
-</head>
-<body>
-    <h1>Playwright Test Report</h1>
-    <p>Generated on: ${new Date().toISOString()}</p>
-    <p>Test run created successfully!</p>
-</body>
-</html>`;
       
-      const content = htmlContent || defaultHtmlContent;
-      const blobName = fileName || `newblob ${+new Date()}`;
+      // Try to read Playwright HTML report, fallback to default content if not found
+      let content = htmlContent;
+      let blobName = fileName || `playwright-report-${+new Date()}.html`;
+      
+      if (!content) {
+        content = await this.getPlaywrightHtmlReport();
+      }
       
       // Get block blob client and upload
       const blockBlobClient = containerClient.getBlockBlobClient(blobName);
@@ -138,6 +115,73 @@ export class PlaywrightServiceApiCall {
       const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
       console.error(`Failed to upload HTML file to storage: ${errorMessage}`);
       throw new Error(`HTML file upload failed: ${errorMessage}`);
+    }
+  }
+
+  /**
+   * Reads the generated Playwright HTML report from the default output directory
+   * 
+   * @returns Promise<string> - The HTML content of the report
+   * @throws Error when HTML report is not found
+   */
+  private async getPlaywrightHtmlReport(): Promise<string> {
+    // Common Playwright HTML report locations
+    const possiblePaths = [
+      join(process.cwd(), "playwright-report", "index.html"),  // Default location
+      // join(process.cwd(), "test-results", "report", "index.html"),
+      // join(process.cwd(), "reports", "playwright", "index.html")
+    ];
+
+    // Try to find the HTML report
+    for (const reportPath of possiblePaths) {
+      if (existsSync(reportPath)) {
+        try {
+          console.log(`Found Playwright HTML report at: ${reportPath}`);
+          const htmlContent = readFileSync(reportPath, "utf8");
+          return htmlContent;
+        } catch (error) {
+          throw new Error(`Failed to read Playwright HTML report from ${reportPath}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+      }
+    }
+
+    // If no report found, throw error
+    throw new Error(`Playwright HTML report not found. Please ensure HTML reporter is enabled in playwright.config.js and tests have completed successfully. Searched paths: ${possiblePaths.join(', ')}`);
+  }
+
+
+
+  /**
+   * Uploads the Playwright HTML report after tests complete.
+   * This method should be called from global teardown or after test execution.
+   * 
+   * @param credential - The DefaultAzureCredential (optional, will use singleton if not provided)
+   * @returns Promise<string> - The URL of the uploaded blob
+   */
+  async uploadPlaywrightHtmlReportAfterTests(credential?: any): Promise<string | null> {
+    try {
+      // Use provided credential or get from singleton
+      const cred = credential || PlaywrightServiceConfig.instance.credential;
+      
+      if (!cred) {
+        console.log("No credential available for HTML report upload. Skipping upload.");
+        return null;
+      }
+
+      console.log("Attempting to upload Playwright HTML report after test execution...");
+      
+      // Wait a bit to ensure HTML report is fully generated
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Try to find and upload the actual HTML report
+      const htmlContent = await this.getPlaywrightHtmlReport();
+      const blobUrl = await this.uploadHtmlToStorage(cred, htmlContent, `playwright-report-final-${+new Date()}.html`);
+      
+      console.log(`Final Playwright HTML report uploaded to: ${blobUrl}`);
+      return blobUrl;
+    } catch (error) {
+      console.warn(`Failed to upload final HTML report: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      return null;
     }
   }
 }
