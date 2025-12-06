@@ -6,7 +6,7 @@ import type { FullConfig } from "@playwright/test";
 import playwrightServiceEntra from "../playwrightServiceEntra.js";
 import { loadCustomerGlobalFunction } from "../../common/executor.js";
 import customerConfig from "../../common/customerConfig.js";
-import { uploadPlaywrightReport } from "../reportUpload.js";
+
 
 const playwrightServiceGlobalTeardownWrapper = async (config: FullConfig): Promise<void> => {
   const rootDir = config.configFile ? dirname(config.configFile!) : process.cwd();
@@ -18,10 +18,6 @@ const playwrightServiceGlobalTeardownWrapper = async (config: FullConfig): Promi
     );
   }
   playwrightServiceEntra.globalTeardown();
-  
-  // Upload Playwright HTML report to Azure Storage if credential is available
-  // This happens automatically when using Entra ID authentication
-  await uploadPlaywrightReport();
   
   if (customerGlobalTeardownFunc) {
     await customerGlobalTeardownFunc(config);

@@ -16,10 +16,12 @@ import type {
   PlaywrightServiceAdditionalOptions,
 } from "./common/types.js";
 import { createAzurePlaywrightConfig, getConnectOptions } from "./core/playwrightService.js";
+import AzureUploadReporterDefault from "./reporter/azureUploadReporter.js";
 
 export {
   createAzurePlaywrightConfig,
   getConnectOptions,
+  AzureUploadReporterDefault as AzureUploadReporter,
   ServiceOS,
   ServiceAuth,
   ServiceEnvironmentVariable,

@@ -11,8 +11,8 @@ import { TestRunCreatePayload } from "../common/types.js";
 import { ServiceErrorMessageConstants } from "../common/messages.js";
 import { Constants } from "../common/constants.js";
 import { BlobServiceClient } from "@azure/storage-blob";
-import { readFileSync, existsSync } from "fs";
-import { join } from "path";
+import { readFileSync, existsSync, readdirSync, statSync } from "fs";
+import { join,relative } from "path";
 import { PlaywrightServiceConfig } from '../common/playwrightServiceConfig.js';
 
 /**
@@ -59,17 +59,17 @@ export class PlaywrightServiceApiCall {
   }
 
   /**
-   * Creates an HTML file and uploads it to the specified Azure Storage Account.
+   * Uploads the entire HTML report folder to the specified Azure Storage Account.
    * 
    * @param credential - The DefaultAzureCredential from options.credential
-   * @param htmlContent - The HTML content to be uploaded (optional, defaults to basic HTML)
-   * @param fileName - The name of the HTML file (optional, defaults to timestamp-based name)
-   * @returns Promise<string> - The URL of the uploaded blob
+   * @param runId - The test run ID to use as container name
+   * @param outputFolder - The path to the output folder to upload
+   * @returns Promise<string> - The URL of the uploaded container
    */
-  async uploadHtmlToStorage(
+  async uploadHtmlReportFolder(
     credential: any,
-    htmlContent?: string,
-    fileName?: string
+    runId: string,
+    outputFolder: string
   ): Promise<string> {
     try {
       // Storage account details
@@ -78,110 +78,174 @@ export class PlaywrightServiceApiCall {
         `https://${account}.blob.core.windows.net`,
         credential
       );
-   console.log("DEBUG: Initialized BlobServiceClient for account:", account);
-   console.log("blobServiceClient: ",blobServiceClient);
-      const containerName = `playwright-reports-${+new Date()}`;
+      console.log("DEBUG: Initialized BlobServiceClient for account:", account);
+      console.log("blobServiceClient: ",blobServiceClient);
+      
+      // Use runId as container name (sanitized for Azure naming requirements)
+      const containerName = runId.toLowerCase().replace(/[^a-z0-9-]/g, '-');
       const containerClient = blobServiceClient.getContainerClient(containerName);
       
       // Create the container if it doesn't exist (private access by default)
       await containerClient.createIfNotExists();
       
-      console.log("containerClient1 :",containerClient)
+      console.log("containerClient:", containerClient);
       
-      // Try to read Playwright HTML report, fallback to default content if not found
-      let content = htmlContent;
-      let blobName = fileName || `playwright-report-${+new Date()}.html`;
-      
-      if (!content) {
-        content = await this.getPlaywrightHtmlReport();
+      // Check if output folder exists
+      if (!existsSync(outputFolder)) {
+        throw new Error(`Output folder not found: ${outputFolder}`);
       }
       
-      // Get block blob client and upload
-      const blockBlobClient = containerClient.getBlockBlobClient(blobName);
-      console.log("blockBlobClient2: ",blockBlobClient)
-      const uploadBlobResponse = await blockBlobClient.upload(content, content.length, {
-        blobHTTPHeaders: {
-          blobContentType: "text/html"
-        }
-      });
-      console.log("DEBUG: Uploaded blob response:", uploadBlobResponse);
-      console.log(
-        `Upload block blob ${blobName} successfully with request ID: ${uploadBlobResponse.requestId}`
-      );
+      // Upload all files from the output folder recursively
+      const uploadedFiles = await this.uploadFolderRecursively(containerClient, outputFolder, outputFolder);
       
-      return blockBlobClient.url;
+      console.log(`Successfully uploaded ${uploadedFiles.length} files to container: ${containerName}`);
+      
+      // Return the container URL (with index.html if it exists)
+      const indexBlobClient = containerClient.getBlockBlobClient('index.html');
+      return indexBlobClient.url;
     } catch (error) {
-      console.error("DEBUG: Error during HTML upload to storage:", error);
+      console.error("DEBUG: Error during HTML report folder upload to storage:", error);
       const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
-      console.error(`Failed to upload HTML file to storage: ${errorMessage}`);
-      throw new Error(`HTML file upload failed: ${errorMessage}`);
+      console.error(`Failed to upload HTML report folder to storage: ${errorMessage}`);
+      throw new Error(`HTML report folder upload failed: ${errorMessage}`);
     }
   }
 
-  /**
-   * Reads the generated Playwright HTML report from the default output directory
-   * 
-   * @returns Promise<string> - The HTML content of the report
-   * @throws Error when HTML report is not found
-   */
-  private async getPlaywrightHtmlReport(): Promise<string> {
-    // Common Playwright HTML report locations
-    const possiblePaths = [
-      join(process.cwd(), "playwright-report", "index.html"),  // Default location
-      // join(process.cwd(), "test-results", "report", "index.html"),
-      // join(process.cwd(), "reports", "playwright", "index.html")
-    ];
-
-    // Try to find the HTML report
-    for (const reportPath of possiblePaths) {
-      if (existsSync(reportPath)) {
-        try {
-          console.log(`Found Playwright HTML report at: ${reportPath}`);
-          const htmlContent = readFileSync(reportPath, "utf8");
-          return htmlContent;
-        } catch (error) {
-          throw new Error(`Failed to read Playwright HTML report from ${reportPath}: ${error instanceof Error ? error.message : 'Unknown error'}`);
-        }
-      }
-    }
-
-    // If no report found, throw error
-    throw new Error(`Playwright HTML report not found. Please ensure HTML reporter is enabled in playwright.config.js and tests have completed successfully. Searched paths: ${possiblePaths.join(', ')}`);
-  }
 
 
 
   /**
-   * Uploads the Playwright HTML report after tests complete.
+   * Uploads the entire Playwright HTML report folder after tests complete.
    * This method should be called from global teardown or after test execution.
    * 
-   * @param credential - The DefaultAzureCredential (optional, will use singleton if not provided)
-   * @returns Promise<string> - The URL of the uploaded blob
+   * @param runId - The test run ID to use as container name (optional, defaults to timestamp)
+   * @returns Promise<string> - The URL of the uploaded report
    */
-  async uploadPlaywrightHtmlReportAfterTests(credential?: any): Promise<string | null> {
+  async uploadPlaywrightHtmlReportAfterTests(): Promise<string | null> {
     try {
       // Use provided credential or get from singleton
-      const cred = credential || PlaywrightServiceConfig.instance.credential;
+      const cred = PlaywrightServiceConfig.instance.credential;
       
       if (!cred) {
         console.log("No credential available for HTML report upload. Skipping upload.");
         return null;
       }
 
-      console.log("Attempting to upload Playwright HTML report after test execution...");
+      console.log("Attempting to upload Playwright HTML report folder after test execution...");
+      
+      // Use the fixed output folder name
+      const outputFolderName = 'playwrightTestReport';
+      const outputFolderPath = join(process.cwd(), outputFolderName);
+      console.log(`Using HTML report output folder: ${outputFolderPath}`);
+      
+      // Use runId from parameter, or get it from the singleton PlaywrightServiceConfig
+      const testRunId = PlaywrightServiceConfig.instance.runId;
+      console.log(`Using runId for container name: ${testRunId}`);
       
       // Wait a bit to ensure HTML report is fully generated
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Try to find and upload the actual HTML report
-      const htmlContent = await this.getPlaywrightHtmlReport();
-      const blobUrl = await this.uploadHtmlToStorage(cred, htmlContent, `playwright-report-final-${+new Date()}.html`);
+      // Check if output folder exists
+      if (!existsSync(outputFolderPath)) {
+        throw new Error(`HTML report output folder not found: ${outputFolderPath}`);
+      }
       
-      console.log(`Final Playwright HTML report uploaded to: ${blobUrl}`);
-      return blobUrl;
+      // Upload the entire report folder
+      const reportUrl = await this.uploadHtmlReportFolder(cred, testRunId, outputFolderPath);
+      
+      console.log(`Complete Playwright HTML report folder uploaded to: ${reportUrl}`);
+      return reportUrl;
     } catch (error) {
       console.warn(`Failed to upload final HTML report: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return null;
     }
+  }
+
+  /**
+   * Recursively uploads all files from a folder to Azure Blob Storage
+   * 
+   * @param containerClient - The Azure container client
+   * @param folderPath - The local folder path to upload
+   * @param basePath - The base path for calculating relative blob names
+   * @returns Promise<string[]> - Array of uploaded blob names
+   */
+  private async uploadFolderRecursively(
+    containerClient: any,
+    folderPath: string,
+    basePath: string
+  ): Promise<string[]> {
+    const uploadedFiles: string[] = [];
+    
+    try {
+      console.log(`Processing folder: ${folderPath}`);
+      const items = readdirSync(folderPath);
+      console.log(`Found ${items.length} items in ${folderPath}:`, items);
+      
+      for (const item of items) {
+        const itemPath = join(folderPath, item);
+        const stats = statSync(itemPath);
+        
+        if (stats.isDirectory()) {
+          // Recursively upload subdirectory
+          console.log(`Entering subdirectory: ${itemPath}`);
+          const subFiles = await this.uploadFolderRecursively(containerClient, itemPath, basePath);
+          console.log(`Uploaded ${subFiles.length} files from subdirectory: ${itemPath}`);
+          uploadedFiles.push(...subFiles);
+        } else {
+          // Upload file
+          const relativePath = relative(basePath, itemPath).replace(/\\\\/g, '/');
+          const fileContent = readFileSync(itemPath);
+          
+          // Determine content type based on file extension
+          const contentType = this.getContentType(itemPath);
+          
+          const blockBlobClient = containerClient.getBlockBlobClient(relativePath);
+          await blockBlobClient.upload(fileContent, fileContent.length, {
+            blobHTTPHeaders: {
+              blobContentType: contentType
+            }
+          });
+          
+          console.log(`✓ Uploaded file: ${relativePath} (${contentType}, ${fileContent.length} bytes)`);
+          uploadedFiles.push(relativePath);
+        }
+      }
+    } catch (error) {
+      console.error(`Error uploading folder ${folderPath}:`, error);
+      throw error;
+    }
+    
+    console.log(`Completed folder ${folderPath}: uploaded ${uploadedFiles.length} files`);
+    return uploadedFiles;
+  }
+
+  /**
+   * Determines the content type based on file extension
+   * 
+   * @param filePath - The file path
+   * @returns string - The MIME type
+   */
+  private getContentType(filePath: string): string {
+    const ext = filePath.toLowerCase().split('.').pop();
+    
+    const contentTypes: { [key: string]: string } = {
+      'html': 'text/html',
+      'css': 'text/css',
+      'js': 'application/javascript',
+      'json': 'application/json',
+      'png': 'image/png',
+      'jpg': 'image/jpeg',
+      'jpeg': 'image/jpeg',
+      'svg': 'image/svg+xml',
+      'ico': 'image/x-icon',
+      'txt': 'text/plain',
+      'ttf': 'font/ttf',
+      'woff': 'font/woff',
+      'woff2': 'font/woff2',
+      'webmanifest': 'application/manifest+json',
+      'map': 'application/json'
+    };
+    
+    return contentTypes[ext || ''] || 'application/octet-stream';
   }
 }

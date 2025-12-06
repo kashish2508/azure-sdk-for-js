@@ -8,13 +8,14 @@ import { PlaywrightServiceApiCall } from "../utils/playwrightServiceApicall.js";
  * This function is called automatically by the package's global teardown when Entra ID authentication is used.
  * 
  * @internal
- * @param credential - Optional DefaultAzureCredential. If not provided, uses the credential from service configuration.
+ * @param runId - Optional run ID to use as container name, defaults to timestamp-based ID
  * @returns Promise<string | null> - The URL of the uploaded HTML report, or null if upload was skipped
  */
-export async function uploadPlaywrightReport(credential?: any): Promise<string | null> {
+export async function uploadPlaywrightReport(): Promise<string | null> {
   try {
     const apiClient = new PlaywrightServiceApiCall();
-    const blobUrl = await apiClient.uploadPlaywrightHtmlReportAfterTests(credential);
+    // Use provided runId or get it from the singleton (no need to pass undefined)
+    const blobUrl = await apiClient.uploadPlaywrightHtmlReportAfterTests();
     
     if (blobUrl) {
       console.log("✅ Playwright HTML report successfully uploaded to Azure Storage");

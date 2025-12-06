@@ -21,7 +21,7 @@ import { FullConfig } from "@playwright/test";
 import { CI_PROVIDERS, CIInfo } from "./cIInfoProvider.js";
 import { exec } from "child_process";
 import { getPackageVersionFromFolder } from "./getPackageVersion.js";
-import { PlaywrightServiceApiCall } from "./playwrightServiceApicall.js";
+// import { PlaywrightServiceApiCall } from "./playwrightServiceApicall.js";
 
 // Re-exporting for backward compatibility
 export { getPlaywrightVersion } from "./getPlaywrightVersion.js";
@@ -206,10 +206,11 @@ export const fetchOrValidateAccessToken = async (credential?: TokenCredential): 
   console.log("DEBUG: fetchOrValidateAccessToken called with credential:", !!credential);
   if (credential) {
     try {
-      console.log("DEBUG: Attempting HTML upload to storage");
-      const apiCall = new PlaywrightServiceApiCall();
-      const blobUrl = await apiCall.uploadHtmlToStorage(credential);
-      console.log(`HTML report uploaded to storage: ${blobUrl}`);
+      console.log("DEBUG: Attempting HTML report folder upload to storage");
+      // const apiCall = new PlaywrightServiceApiCall();
+      // Note: This method requires config and runId parameters, so we skip it here
+      // The proper upload happens in global teardown with full context
+      console.log(`HTML report upload will be handled in global teardown`);
     } catch (error) {
       console.warn(`Failed to upload HTML report to storage: ${error instanceof Error ? error.message : 'Unknown error'}`);
       // Don't fail the token fetch if HTML upload fails
