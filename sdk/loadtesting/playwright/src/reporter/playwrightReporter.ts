@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-import type { FullConfig, Reporter, Suite } from "@playwright/test/reporter";
+import type { FullConfig, Reporter } from "@playwright/test/reporter";
 import { PlaywrightServiceApiCall } from "../utils/playwrightServiceApicall.js";
 import { getHtmlReporterOutputFolder } from "../utils/utils.js";
 
@@ -11,10 +11,17 @@ import { getHtmlReporterOutputFolder } from "../utils/utils.js";
 export default class playwrightReporter implements Reporter {
   private config: FullConfig | undefined;
 
-  onBegin(config: FullConfig, suite: Suite) {
+  /**
+   * Called when test run begins. Stores configuration for later use.
+   * @param config - Playwright test configuration
+   */
+  onBegin(config: FullConfig) {
     this.config = config;
   }
 
+  /**
+   * Called when test run ends. Uploads HTML report to Azure Storage.
+   */
   async onEnd() {
     console.log(`Uploading Playwright Test report...`);
     await this.uploadHtmlReport();

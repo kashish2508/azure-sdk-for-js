@@ -6,13 +6,10 @@
 
 import type { FullConfig } from '@playwright/test/reporter';
 import type { Reporter } from '@playwright/test/reporter';
-import type { Suite } from '@playwright/test/reporter';
 
 // @public
 class playwrightReporter implements Reporter {
-    // (undocumented)
-    onBegin(config: FullConfig, suite: Suite): void;
-    // (undocumented)
+    onBegin(config: FullConfig): void;
     onEnd(): Promise<void>;
 }
 export default playwrightReporter;
