@@ -5,22 +5,11 @@
 ```ts
 
 import type { ConnectOptions } from '@playwright/test';
-import type { FullConfig } from '@playwright/test/reporter';
 import type { PlaywrightTestConfig } from '@playwright/test';
-import type { Reporter } from '@playwright/test/reporter';
-import type { Suite } from '@playwright/test/reporter';
 import type { TokenCredential } from '@azure/identity';
 
 // @public
 export type AuthenticationType = (typeof ServiceAuth)[keyof typeof ServiceAuth];
-
-// @public
-export class AzureUploadReporter implements Reporter {
-    // (undocumented)
-    onBegin(_config: FullConfig, suite: Suite): void;
-    // (undocumented)
-    onExit(): Promise<void>;
-}
 
 // @public
 export type BrowserConnectOptions = EndpointOptions & {
