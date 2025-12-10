@@ -1,8 +1,7 @@
-import { createAzurePlaywrightConfig } from "@azure/playwright";
+import { createAzurePlaywrightConfig, ServiceAuth } from "@azure/playwright";
 import { defineConfig } from "@playwright/test";
 import { DefaultAzureCredential } from "@azure/identity";
 import config from "./playwright.config.js";
-import { ServiceAuth } from "../../../../src/index.js";
 
 const credential = new DefaultAzureCredential();
 
@@ -19,7 +18,7 @@ export default defineConfig(
     If you are using more reporters, please update your configuration accordingly.
     */
     reporter: [
-      ["html", {open: "always" }], // Generate HTML report
+      ["html", { outputFolder: "kash-report", open: "always" }], // Generate HTML report
       ["@azure/playwright/reporter"], // Upload HTML report to Azure
     ],
   },

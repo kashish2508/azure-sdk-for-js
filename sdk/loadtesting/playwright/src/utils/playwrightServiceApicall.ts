@@ -54,7 +54,7 @@ export class PlaywrightServiceApiCall {
       const errorMessage = extractErrorMessage(response?.bodyAsText ?? "");
       exitWithFailureMessage(ServiceErrorMessageConstants.FAILED_TO_CREATE_TEST_RUN, errorMessage);
     }
-    console.log("kkkkkTest run created successfully.");
+    console.log("Test run created successfully.");
     return response.bodyAsText ? JSON.parse(response.bodyAsText) : {};
   }
 
@@ -66,110 +66,62 @@ export class PlaywrightServiceApiCall {
    * @param outputFolder - The path to the output folder to upload
    * @returns Promise<string> - The URL of the uploaded container
    */
-  async uploadHtmlReportFolder(
+  private async uploadHtmlReportFolder(
     credential: any,
     runId: string,
     outputFolder: string,
-  ): Promise<string> {
-    try {
-      // Storage account details
-      const account = "2002kash";
-      const blobServiceClient = new BlobServiceClient(
-        `https://${account}.blob.core.windows.net`,
-        credential,
-      );
-      console.log("Initialized BlobServiceClient for account:", account);
+  ): Promise<void> {
+    const account = "2002kash"; //for now will update once API is available.
+    const blobServiceClient = new BlobServiceClient(
+      `https://${account}.blob.core.windows.net`,
+      credential,
+    );
 
-      // Get workspace ID (accountId) from service URL to use as container name
-      const serviceUrlInfo = this.getWorkspaceInfoFromServiceUrl();
-      if (!serviceUrlInfo?.accountId) {
-        throw new Error("Unable to extract workspace ID from service URL for container naming");
-      }
-
-      // Use workspace ID (accountId) as container name (sanitized for Azure naming requirements)
-      const containerName = serviceUrlInfo.accountId.toLowerCase().replace(/[^a-z0-9-]/g, "-");
-      const containerClient = blobServiceClient.getContainerClient(containerName);
-
-      // Check if container exists, create if it doesn't
-      const containerExists = await containerClient.exists();
-      if (!containerExists) {
-        await containerClient.create();
-        console.log("Created new container for workspace:", containerName);
-      } else {
-        console.log("Using existing container for workspace:", containerName);
-      }
-
-      // Check if output folder exists
-      if (!existsSync(outputFolder)) {
-        throw new Error(`Output folder not found: ${outputFolder}`);
-      }
-
-      // Upload all files in parallel for better performance with runId folder structure
-      const uploadedFiles = await this.uploadFolderInParallel(
-        containerClient,
-        outputFolder,
-        outputFolder,
-        runId, // Pass runId to create folder structure
-      );
-
-      console.log(
-        `Successfully uploaded ${uploadedFiles.length} files to container: ${containerName} in folder: ${runId}`,
-      );
-
-      // Return the container URL with runId folder path (with index.html if it exists)
-      const indexBlobClient = containerClient.getBlockBlobClient(`${runId}/index.html`);
-      return indexBlobClient.url;
-    } catch (error) {
-      console.error("Error during HTML report folder upload:", error);
-      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
-      throw new Error(`HTML report folder upload failed: ${errorMessage}`);
+    const serviceUrlInfo = this.getWorkspaceInfoFromServiceUrl();
+    if (!serviceUrlInfo?.accountId) {
+      throw new Error("Unable to extract workspace ID from service URL");
     }
+
+    const containerName = serviceUrlInfo.accountId.toLowerCase().replace(/[^a-z0-9-]/g, "-");
+    const containerClient = blobServiceClient.getContainerClient(containerName);
+
+    const containerExists = await containerClient.exists();
+    if (!containerExists) {
+      await containerClient.create();
+      console.log(`Created new container: ${containerName}`);
+    } else {
+      console.log(`Using existing container: ${containerName}`);
+    }
+
+    console.log(`Creating folder: ${runId}`);
+    const uploadedFiles = await this.uploadFolderInParallel(
+      containerClient,
+      outputFolder,
+      outputFolder,
+      runId,
+    );
+
+    console.log(`Successfully uploaded ${uploadedFiles.length} files`);
   }
 
   /**
    * Uploads the entire Playwright HTML report folder after tests complete.
-   * This method should be called from global teardown or after test execution.
-   *
-   * @param outputFolderName - The output folder name (optional, defaults to 'playwrightTestReport')
-   * @returns Promise<string> - The URL of the uploaded report
    */
-  async uploadPlaywrightHtmlReportAfterTests(outputFolderName?: string): Promise<string | null> {
-    try {
-      // Use provided credential or get from singleton
-      const cred = PlaywrightServiceConfig.instance.credential;
-
-      if (!cred) {
-        console.log("No credential available for HTML report upload. Skipping upload.");
-        return null;
-      }
-
-      console.log("Attempting to upload Playwright HTML report folder after test execution...");
-
-      // Use provided output folder name or default
-      const folderName = outputFolderName || "playwrightTestReport";
-      const outputFolderPath = join(process.cwd(), folderName);
-      console.log(`Using HTML report output folder: ${outputFolderPath}`);
-
-      // Use runId from parameter, or get it from the singleton PlaywrightServiceConfig
-      const testRunId = PlaywrightServiceConfig.instance.runId;
-      console.log(`Using runId for container name: ${testRunId}`);
-
-      // Check if output folder exists
-      if (!existsSync(outputFolderPath)) {
-        throw new Error(`HTML report output folder not found: ${outputFolderPath}`);
-      }
-
-      // Upload the entire report folder
-      const reportUrl = await this.uploadHtmlReportFolder(cred, testRunId, outputFolderPath);
-
-      console.log(`Complete Playwright HTML report folder uploaded to: ${reportUrl}`);
-      return reportUrl;
-    } catch (error) {
-      console.warn(
-        `Failed to upload final HTML report: ${error instanceof Error ? error.message : "Unknown error"}`,
-      );
-      return null;
+  async uploadPlaywrightHtmlReportAfterTests(outputFolderName?: string): Promise<void> {
+    const cred = PlaywrightServiceConfig.instance.credential;
+    if (!cred) {
+      throw new Error("No Azure credential available for HTML report upload");
     }
+
+    const folderName = outputFolderName || "playwright-report";
+    const outputFolderPath = join(process.cwd(), folderName);
+
+    if (!existsSync(outputFolderPath)) {
+      throw new Error(`HTML report folder not found: ${folderName}`);
+    }
+
+    const testRunId = PlaywrightServiceConfig.instance.runId;
+    await this.uploadHtmlReportFolder(cred, testRunId, outputFolderPath);
   }
 
   /**
@@ -188,44 +140,25 @@ export class PlaywrightServiceApiCall {
     basePath: string,
     runIdFolderPrefix?: string,
   ): Promise<string[]> {
-    console.log(`Starting optimized parallel upload for folder: ${folderPath}`);
-
-    // Collect and sort files (small files first for better perceived performance)
     const filesToUpload = this.collectAllFiles(folderPath, basePath, runIdFolderPrefix).sort(
       (a, b) => a.size - b.size,
-    );
-
-    console.log(
-      `Found ${filesToUpload.length} files to upload (${this.formatFileSize(filesToUpload.reduce((sum, f) => sum + f.size, 0))} total)`,
     );
 
     if (filesToUpload.length === 0) {
       return [];
     }
 
-    // Adaptive concurrency based on file count and sizes
     const concurrency = this.calculateOptimalConcurrency(filesToUpload);
-    console.log(`Using concurrency: ${concurrency}`);
-
-    // Use a semaphore-like approach for better control
     const results = await this.uploadWithConcurrencyControl(
       containerClient,
       filesToUpload,
       concurrency,
     );
 
-    const successful = results.filter((r) => r.status === "fulfilled").length;
     const failed = results.filter((r) => r.status === "rejected").length;
 
     if (failed > 0) {
-      console.warn(`Upload completed: ${successful} successful, ${failed} failed`);
-      // Log failed uploads for debugging
-      results
-        .filter((r) => r.status === "rejected")
-        .slice(0, 5) // Show first 5 failures
-        .forEach((r) => console.error(`Upload failed: ${(r as PromiseRejectedResult).reason}`));
-    } else {
-      console.log(`✓ All ${successful} files uploaded successfully`);
+      throw new Error(`Upload failed: ${failed} files could not be uploaded`);
     }
 
     return results
@@ -241,7 +174,6 @@ export class PlaywrightServiceApiCall {
     files: Array<{ fullPath: string; relativePath: string; size: number; contentType: string }>,
     concurrency: number,
   ): Promise<PromiseSettledResult<string>[]> {
-    const startTime = Date.now();
 
     // Create a queue of upload tasks
     const uploadTasks = files.map((fileInfo) => async (): Promise<string> => {
@@ -256,54 +188,19 @@ export class PlaywrightServiceApiCall {
     });
 
     // Execute with controlled concurrency and batch progress reporting
-    return this.executeWithConcurrency(uploadTasks, concurrency, files.length, startTime);
+    return this.executeWithConcurrency(uploadTasks, concurrency);
   }
 
-  /**
-   * Executes tasks with controlled concurrency and reports progress per batch.
-   */
   private async executeWithConcurrency<T>(
     tasks: Array<() => Promise<T>>,
     concurrency: number,
-    totalFiles?: number,
-    startTime?: number,
   ): Promise<PromiseSettledResult<T>[]> {
     const results: PromiseSettledResult<T>[] = [];
-    const batchCount = Math.ceil(tasks.length / concurrency);
 
     for (let i = 0; i < tasks.length; i += concurrency) {
-      const currentBatch = Math.floor(i / concurrency) + 1;
       const batch = tasks.slice(i, i + concurrency);
-      const batchSize = batch.length;
-
-      console.log(
-        `Batch ${currentBatch}/${batchCount}: Starting upload of ${batchSize} files (concurrency: ${batchSize})...`,
-      );
-
-      const batchStartTime = Date.now();
       const batchPromises = batch.map((task) => task());
       const batchResults = await Promise.allSettled(batchPromises);
-      const batchDuration = (Date.now() - batchStartTime) / 1000;
-
-      const batchSuccessful = batchResults.filter((r) => r.status === "fulfilled").length;
-      const batchFailed = batchResults.filter((r) => r.status === "rejected").length;
-
-      // Calculate overall progress
-      const completedFiles = results.length + batchResults.length;
-      const overallProgress = totalFiles ? ((completedFiles / totalFiles) * 100).toFixed(1) : "0.0";
-
-      // Calculate rates and ETA
-      let rateInfo = "";
-      if (startTime && totalFiles) {
-        const elapsed = (Date.now() - startTime) / 1000;
-        const rate = completedFiles / elapsed;
-        const eta = totalFiles > completedFiles ? (totalFiles - completedFiles) / rate : 0;
-        rateInfo = ` - ${rate.toFixed(1)} files/sec - ETA: ${eta.toFixed(0)}s`;
-      }
-
-      console.log(
-        `Batch ${currentBatch} completed in ${batchDuration.toFixed(1)}s: ${batchSuccessful} successful${batchFailed > 0 ? `, ${batchFailed} failed` : ""} | Overall: ${completedFiles}/${totalFiles || tasks.length} (${overallProgress}%)${rateInfo}`,
-      );
 
       results.push(...batchResults);
     }
@@ -397,9 +294,7 @@ export class PlaywrightServiceApiCall {
         }
       } catch (error) {
         // Skip directories we can't read (permissions, etc.)
-        console.warn(
-          `Could not read directory ${currentPath}: ${error instanceof Error ? error.message : "Unknown error"}`,
-        );
+        continue;
       }
     }
 
@@ -462,9 +357,6 @@ export class PlaywrightServiceApiCall {
 
         // Exponential backoff with jitter
         const delay = retryDelay * Math.pow(2, attempt - 1) + Math.random() * 1000;
-        console.warn(
-          `Upload attempt ${attempt} failed for ${fileInfo.relativePath}, retrying in ${Math.round(delay)}ms: ${errorMessage}`,
-        );
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
@@ -501,20 +393,6 @@ export class PlaywrightServiceApiCall {
     };
 
     return contentTypes[ext || ""] || "application/octet-stream";
-  }
-
-  /**
-   * Formats file size in a human-readable format.
-   *
-   * @param bytes - File size in bytes
-   * @returns Formatted file size string
-   */
-  private formatFileSize(bytes: number): string {
-    if (bytes === 0) return "0 B";
-    const k = 1024;
-    const sizes = ["B", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
   }
 
   /**

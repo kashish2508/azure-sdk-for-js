@@ -201,24 +201,7 @@ export const fetchOrValidateAccessToken = async (credential?: TokenCredential): 
   if (!token) {
     throw new Error(ServiceErrorMessageConstants.NO_AUTH_ERROR.message);
   }
-  
-  // Upload HTML file to storage after successful Entra token generation
-  console.log("DEBUG: fetchOrValidateAccessToken called with credential:", !!credential);
-  if (credential) {
-    try {
-      console.log("DEBUG: Attempting HTML report folder upload to storage");
-      // const apiCall = new PlaywrightServiceApiCall();
-      // Note: This method requires config and runId parameters, so we skip it here
-      // The proper upload happens in global teardown with full context
-      console.log(`HTML report upload will be handled in global teardown`);
-    } catch (error) {
-      console.warn(`Failed to upload HTML report to storage: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      // Don't fail the token fetch if HTML upload fails
-    }
-  } else {
-    console.log("DEBUG: No credential provided, skipping HTML upload");
-  }
-  
+
   return token;
 };
 
@@ -342,4 +325,32 @@ export function extractErrorMessage(responseBody: string): string {
   } catch (e) {
     return responseBody;
   }
+}
+
+/**
+ * Extracts the output folder from HTML reporter configuration.
+ * Returns 'playwright-report' as default if not configured.
+ */
+export function getHtmlReporterOutputFolder(config: FullConfig | undefined): string {
+  const defaultFolder = "playwright-report";
+
+  if (!config?.reporter) {
+    return defaultFolder;
+  }
+
+  // Find HTML reporter in the configuration
+  for (const reporter of config.reporter) {
+    if (Array.isArray(reporter)) {
+      const [reporterName, options] = reporter;
+      if (reporterName === "html" && options && typeof options === "object") {
+        // Return the configured outputFolder or default
+        return (options as any).outputFolder || defaultFolder;
+      }
+    } else if (typeof reporter === "string" && reporter === "html") {
+      // HTML reporter without options, use default
+      return defaultFolder;
+    }
+  }
+
+  return defaultFolder;
 }
