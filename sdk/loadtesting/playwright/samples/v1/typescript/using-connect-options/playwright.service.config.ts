@@ -18,7 +18,7 @@ export default defineConfig(
     If you are using more reporters, please update your configuration accordingly.
     */
     reporter: [
-      ["html", { outputFolder: "kash-report", open: "always" }], // Generate HTML report
+      ["html", { outputFolder: "Test-report" }], // Generate HTML report
       ["@azure/playwright/reporter"], // Upload HTML report to Azure
     ],
   },

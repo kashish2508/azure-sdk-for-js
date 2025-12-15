@@ -79,3 +79,30 @@ export const InternalEnvironmentVariables = {
   ONE_TIME_OPERATION_FLAG: "_ONE_TIME_OPERATION_FLAG",
   USING_SERVICE_CONFIG: "_USING_SERVICE_CONFIG",
 };
+
+/**
+ * Upload-specific constants optimized for Azure Storage performance
+ * Based on Azure SDK best practices and performance testing
+ */
+export const UploadConstants = {
+  // File size thresholds for different upload strategies
+  SMALL_FILE_THRESHOLD: 1024 * 1024, // 1 MB - use direct upload
+  LARGE_FILE_THRESHOLD: 100 * 1024 * 1024, // 100 MB - use streaming upload
+
+  // Concurrency settings for optimal performance
+  BASE_CONCURRENCY: 20, // Base concurrent uploads (increased from Azure SDK default of 5)
+  MAX_CONCURRENCY: 50, // Maximum concurrent uploads for aggressive performance
+  PER_FILE_CONCURRENCY: 10, // Concurrency per individual file upload
+  LARGE_FILE_CONCURRENCY: 5, // Streaming concurrency for large files
+
+  // Batch processing settings
+  BATCH_SIZE: 100, // Files per batch for progress reporting and memory management
+
+  // Block size settings (Azure Storage optimized)
+  OPTIMIZED_BLOCK_SIZE: 8 * 1024 * 1024, // 8 MB blocks (optimal for most scenarios)
+  STREAM_BUFFER_SIZE: 4 * 1024 * 1024, // 4 MB buffer for streaming uploads
+
+  // Retry configuration
+  MAX_RETRY_ATTEMPTS: 3, // Maximum retry attempts per file
+  RETRY_BASE_DELAY: 1000, // Base delay in ms for exponential backoff
+};

@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 import type { FullConfig, Reporter } from "@playwright/test/reporter";
-import { PlaywrightServiceApiCall } from "../utils/playwrightServiceApicall.js";
+import { PlaywrightReportUploader } from "../utils/playwrightReportUploader.js";
 import { getHtmlReporterOutputFolder } from "../utils/utils.js";
 
 /**
@@ -23,17 +23,17 @@ export default class playwrightReporter implements Reporter {
    * Called when test run ends. Uploads HTML report to Azure Storage.
    */
   async onEnd() {
-    console.log(`Uploading Playwright Test report...`);
+    console.log(`Uploading Playwright Test report in Azure storage account.`);
     await this.uploadHtmlReport();
   }
 
   private async uploadHtmlReport(): Promise<void> {
     try {
       const outputFolder = getHtmlReporterOutputFolder(this.config);
-      const playwrightServiceApiClient = new PlaywrightServiceApiCall();
+      const uploader = new PlaywrightReportUploader();
 
-      await playwrightServiceApiClient.uploadPlaywrightHtmlReportAfterTests(outputFolder);
-      console.log(`✅ HTML report uploaded successfully to Azure Storage`);
+      await uploader.uploadPlaywrightHtmlReportAfterTests(outputFolder);
+      console.log(`✅ Playwright Test report uploaded successfully to Azure Storage.`);
     } catch (error) {
       console.error(
         `❌ Failed to upload HTML report: ${error instanceof Error ? error.message : "Unknown error"}`,
