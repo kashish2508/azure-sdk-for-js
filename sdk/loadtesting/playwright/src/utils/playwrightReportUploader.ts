@@ -72,13 +72,10 @@ export class PlaywrightReportUploader {
       console.log(`Using existing container for this workspace: ${containerName}`);
     }
 
-    console.log(`Folder created for this run: ${Date.now()}_${runId}`);
-    await this.uploadFolderInParallel(
-      containerClient,
-      outputFolder,
-      outputFolder,
-      `${Date.now()}_${runId}`,
-    );
+    const timestamp = Date.now();
+    const folderName = `${timestamp}_${runId}`;
+    console.log(`Folder created for this run: ${folderName}`);
+    await this.uploadFolderInParallel(containerClient, outputFolder, outputFolder, folderName);
   }
 
   /**
