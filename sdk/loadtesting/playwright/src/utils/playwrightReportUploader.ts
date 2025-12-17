@@ -2,10 +2,18 @@
 // Licensed under the MIT License.
 
 import { BlobServiceClient } from "@azure/storage-blob";
-import { readFileSync, existsSync, readdirSync, statSync, createReadStream } from "fs";
+import {
+  readFileSync,
+  existsSync,
+  readdirSync,
+  statSync,
+  createReadStream,
+  writeFileSync,
+} from "fs";
 import { join, relative } from "path";
 import { UploadConstants } from "../common/constants.js";
-import { populateValuesFromServiceUrl } from "./utils.js";
+import { populateValuesFromServiceUrl, extractStorageAccountName } from "./utils.js";
+import { PlaywrightServiceApiCall } from "./playwrightServiceApicall.js";
 import { PlaywrightServiceConfig } from "../common/playwrightServiceConfig.js";
 
 /**
@@ -50,7 +58,9 @@ export class PlaywrightReportUploader {
     runId: string,
     outputFolder: string,
   ): Promise<void> {
-    const StorageAccount = "2002kash"; //for now will update once API is available.
+    const playwrightServiceApiClient = new PlaywrightServiceApiCall();
+    const workspaceDetails = await playwrightServiceApiClient.getWorkspaceDetailAPI();
+    const StorageAccount = extractStorageAccountName(workspaceDetailsResult?.storageUri);
     const blobServiceClient = new BlobServiceClient(
       `https://${StorageAccount}.blob.core.windows.net`,
       credential,
@@ -75,7 +85,99 @@ export class PlaywrightReportUploader {
     const timestamp = Date.now();
     const folderName = `${timestamp}_${runId}`;
     console.log(`Folder created for this run: ${folderName}`);
+
+    // Step 1: Modify index.html to add service worker script
+    await this.modifyIndexHtml(outputFolder);
+
+    // Step 2: Upload all files including modified index.html
     await this.uploadFolderInParallel(containerClient, outputFolder, outputFolder, folderName);
+  }
+
+  /**
+   * Modifies the index.html file to include service worker registration script.
+   *
+   * Adds a script tag just after the title tag in the head section that registers
+   * the service worker for handling SAS token authentication.
+   *
+   * @param outputFolder - Path to the HTML report folder containing index.html
+   */
+  private async modifyIndexHtml(outputFolder: string): Promise<void> {
+    const indexPath = join(outputFolder, "index.html");
+
+    if (!existsSync(indexPath)) {
+      console.warn("index.html not found, skipping service worker script injection");
+      return;
+    }
+
+    try {
+      let htmlContent = readFileSync(indexPath, "utf-8");
+
+      // Service worker registration script
+      const serviceWorkerScript = `
+<script>
+  // Modify trace links to point to trace.playwright.dev
+  function modifyTraceLinks() {
+    document.querySelectorAll('a[download="trace.zip"]').forEach(traceLink => {
+      const originalHref = traceLink.getAttribute('href');
+      if (originalHref && !traceLink.hasAttribute('data-trace-processed')) {
+        // Mark as processed to avoid re-processing
+        traceLink.setAttribute('data-trace-processed', 'true');
+
+        // Construct the encoded URL from the trace download link
+        const fullUrl = new URL(originalHref, window.location.href).toString();
+        const encodedUrl = encodeURIComponent(fullUrl);
+        const newHref = \`https://trace.playwright.dev/?trace=\${encodedUrl}\`;
+
+        // Find the parent container and look for the screenshot anchor
+        let parent = traceLink.parentElement;
+        while (parent && parent !== document.body) {
+          const screenshotLink = parent.querySelector('a img.screenshot');
+          if (screenshotLink) {
+            const screenshotAnchor = screenshotLink.parentElement;
+            if (screenshotAnchor && screenshotAnchor.tagName === 'A') {
+              screenshotAnchor.setAttribute('href', newHref);
+              screenshotAnchor.setAttribute('target', '_blank');
+              break;
+            }
+          }
+          parent = parent.parentElement;
+        }
+      }
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // Run immediately
+    modifyTraceLinks();
+
+    // Watch for dynamically added content
+    const observer = new MutationObserver(() => {
+      modifyTraceLinks();
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+  });
+</script>`;
+
+      // Find the title tag and add script after it
+      const titleMatch = htmlContent.match(/<\/title>/i);
+      if (titleMatch) {
+        const insertPosition = titleMatch.index! + titleMatch[0].length;
+        htmlContent =
+          htmlContent.slice(0, insertPosition) +
+          serviceWorkerScript +
+          htmlContent.slice(insertPosition);
+
+        // Write modified content back to file
+        writeFileSync(indexPath, htmlContent, "utf-8");
+        console.log("✅ Modified index.html to include service worker registration");
+      } else {
+        console.warn("Could not find </title> tag in index.html, skipping script injection");
+      }
+    } catch (error) {
+      console.error("Error modifying index.html:", error);
+      throw error;
+    }
   }
 
   /**

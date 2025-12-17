@@ -251,6 +251,18 @@ export const getTestRunConfig = (config: FullConfig): RunConfig => {
   return testRunConfig;
 };
 
+export function getWorkspaceDetailApiUrl(): string {
+  const result = populateValuesFromServiceUrl();
+
+  if (!result?.region || !result?.domain || !result?.accountId) {
+    exitWithFailureMessage(ServiceErrorMessageConstants.NO_SERVICE_URL_ERROR);
+  }
+  const baseUrl = `https://${result?.region}.api.${result?.domain}/playwrightworkspaces/${result?.accountId}`;
+
+  return `${baseUrl}?api-version=${Constants.LatestAPIVersion}`;
+}
+
+
 export function getTestRunApiUrl(): string {
   const result = populateValuesFromServiceUrl();
   const runId = process.env[InternalEnvironmentVariables.MPT_SERVICE_RUN_ID];
@@ -324,6 +336,33 @@ export function extractErrorMessage(responseBody: string): string {
     return responseBody;
   } catch (e) {
     return responseBody;
+  }
+}
+
+export function extractStorageAccountName(storageUri: string): string {
+  if (!storageUri) {
+    throw new Error("Storage URI cannot be empty or null");
+  }
+
+  try {
+    const url = new URL(storageUri);
+    
+    // Check if it's a blob storage URL
+    if (!url.hostname.endsWith('.blob.core.windows.net')) {
+      throw new Error("Invalid Azure Blob Storage URL format");
+    }
+    const storageAccountName = url.hostname.split('.')[0];
+    
+    if (!storageAccountName) {
+      throw new Error("Could not extract storage account name from URL");
+    }
+    
+    return storageAccountName;
+  } catch (error) {
+    if (error instanceof TypeError) {
+      throw new Error(`Invalid URL format: ${storageUri}`);
+    }
+    throw error;
   }
 }
 

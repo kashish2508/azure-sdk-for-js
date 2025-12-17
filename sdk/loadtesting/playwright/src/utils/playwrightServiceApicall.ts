@@ -5,6 +5,7 @@ import {
   getAccessToken,
   extractErrorMessage,
   exitWithFailureMessage,
+  getWorkspaceDetailApiUrl
 } from "./utils.js";
 import { HttpService } from "../common/httpService.js";
 import { TestRunCreatePayload } from "../common/types.js";
@@ -18,7 +19,6 @@ import { Constants } from "../common/constants.js";
  * - Creates and updates test runs via PATCH API calls
  * - Handles authentication and error responses
  *
- * Note: All upload functionality has been moved to PlaywrightReportUploader for proper separation of concerns.
  */
 export class PlaywrightServiceApiCall {
   private httpService: HttpService;
@@ -53,6 +53,34 @@ export class PlaywrightServiceApiCall {
       exitWithFailureMessage(ServiceErrorMessageConstants.FAILED_TO_CREATE_TEST_RUN, errorMessage);
     }
     console.log("Test run created successfully.");
+    return response.bodyAsText ? JSON.parse(response.bodyAsText) : {};
+  }
+
+  async getWorkspaceDetailAPI(): Promise<any> {
+    const baseUrl = getWorkspaceDetailApiUrl();
+    const token = getAccessToken();
+    if (!token) {
+      throw new Error("PLAYWRIGHT_SERVICE_ACCESS_TOKEN environment variable is not set.");
+    }
+    const url = new URL(baseUrl);
+    url.searchParams.set("api-version", Constants.LatestAPIVersion);
+    const method = "GET";
+    const correlationId = crypto.randomUUID();
+
+    const response = await this.httpService.callAPI(
+      method,
+      url.toString(),
+      null,
+      token,
+      "",
+      correlationId,
+    );
+    if (response.status !== 200) {
+      const errorMessage = extractErrorMessage(response?.bodyAsText ?? "");
+      exitWithFailureMessage({ key: "FAILED_TO_GET_WORKSPACE_DETAILS", message: "Failed to get workspace details" }, errorMessage);
+    }
+    console.log("response: ", response);
+    // console.log("Test run created successfully.");
     return response.bodyAsText ? JSON.parse(response.bodyAsText) : {};
   }
 }
