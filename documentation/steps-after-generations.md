@@ -49,8 +49,8 @@ See the [Javascript Codegen Quick Start for Test](https://github.com/Azure/azure
     You could follow the [basic RLC test interaction and recording example](https://github.com/Azure/azure-sdk-for-js/blob/main/documentation/Quickstart-on-how-to-write-tests.md#example-1-basic-rlc-test-interaction-and-recording-for-azure-data-plane-service) to write your test step by step.
 
     Also, you could refer to the below examples for more cases:
-    - RLC example: [OpenAI Testing](https://github.com/Azure/azure-sdk-for-js/tree/main/sdk/openai/openai/test/public)
-    - DPG example: [Maps Route Testing](https://github.com/Azure/azure-sdk-for-js/tree/main/sdk/maps/maps-route-rest/test/public)
+    - DPG example: [OpenAI Testing](https://github.com/Azure/azure-sdk-for-js/tree/main/sdk/openai/openai/test/public)
+    - RLC example: [Maps Route Testing](https://github.com/Azure/azure-sdk-for-js/tree/main/sdk/maps/maps-route-rest/test/public)
     - MPG example: [Containerservice Fleet Testing](https://github.com/Azure/azure-sdk-for-js/blob/main/sdk/containerservice/arm-containerservicefleet/test/public/)
 
 2. **Run the test**
@@ -88,7 +88,7 @@ See the [Javascript Codegen Quick Start for Test](https://github.com/Azure/azure
 
 # How to write samples
 
-We highly encourage you to write some valid samples for your customer to get start your service with libraries. You may author TypeScript samples under the `samples-dev` folder. For quick start, you can use [sample-dev template](https://github.com/Azure/azure-sdk-for-js/tree/main/sdk/template/template/samples-dev) as reference and update the relevant information for your service such as package-name, sample code, description, etc.
+We highly encourage you to write some valid samples for your customer to get start your service with libraries. You may author TypeScript samples under the `samples-dev` folder. For quick start, you can use [samples-dev template](https://github.com/Azure/azure-sdk-for-js/tree/main/sdk/template/template/samples-dev) as reference and update the relevant information for your service such as package-name, sample code, description, etc.
 
 To learn more, you could refer to the below samples:
 - DPG sample: [the samples of OpenAIClient](https://github.com/Azure/azure-sdk-for-js/tree/main/sdk/openai/openai/samples-dev)
