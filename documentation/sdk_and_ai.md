@@ -34,32 +34,7 @@ for setup instructions.
 
 The Microsoft skills marketplace provides Azure SDK skills that give AI agents
 context about Azure SDK conventions, code generation, and package management.
-These skills work with CLI-based AI tools that support plugins, such as Claude Code
-and Copilot CLI.
-
-Install the Microsoft skills marketplace:
-
-```
-/plugin marketplace add Microsoft/skills
-```
-
-Install the [Azure SDK skills plugin](https://github.com/microsoft/skills/tree/main/.github/plugins/azure-sdk-typescript):
-
-```
-/plugin install azure-sdk-typescript@skills
-```
-
-Verify installation:
-
-```
-/plugin list
-```
-
-Update the plugin:
-
-```
-/plugin update azure-sdk-typescript@skills
-```
+These skills are primarily documented for plugin-capable CLI agents. In this repository, GitHub Copilot uses the checked-in guidance in [`AGENTS.md`](https://github.com/Azure/azure-sdk-for-js/blob/main/AGENTS.md), the skills under [`.github/skills/`](https://github.com/Azure/azure-sdk-for-js/tree/main/.github/skills), and the review guidance under [`.github/prompts/`](https://github.com/Azure/azure-sdk-for-js/tree/main/.github/prompts).
 
 Skills provide domain-specific context that helps AI tools generate more
 accurate code to use Azure SDK.
