@@ -132,7 +132,7 @@ In the Copilot Chat panel, use the `@` prefix to summon an agent by name:
   explore the codebase to answer questions.
 - You can ask an agent to review specific files, a git diff, or the entire
   branch.
-- Agents follow the detailed guidance and references in `.github/prompts/`.
+- Agents follow the detailed guidance and references in `AGENTS.md`, `.github/agents/`, and `.github/prompts/`.
 - Agents respect the same scoping rules as in CI: they ignore `src/generated/`,
   `snippets.spec.ts`, formatting issues, and domains outside their expertise.
 
@@ -173,6 +173,7 @@ Agent definitions and their detailed review guidelines are stored in:
 
 - **`.github/agents/*.agent.md`** — Defines the agent persona, checklist, scope,
   and output format. Used by both VS Code Copilot Chat and CI workflows.
+- **`AGENTS.md`** — Resolver that points at the canonical agent-facing guidance for repo workflows and review instructions.
 - **`.github/prompts/*.md`** — Comprehensive review and analysis guidance plus
   supporting references used by agents. Edit these to update review criteria or
   analysis behavior.

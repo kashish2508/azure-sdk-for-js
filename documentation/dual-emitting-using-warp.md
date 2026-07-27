@@ -1,6 +1,6 @@
 # Dual Emitting Using Warp
 
-The Azure SDK for JS client libraries are built for both CommonJS and ESM using [@microsoft/warp](https://github.com/Azure/azure-sdk-for-js/blob/main/common/tools/warp/README.md).
+The Azure SDK for JS client libraries are built for both CommonJS and ESM using [@microsoft/warp](https://github.com/Azure/azure-sdk-for-js/blob/main/common/tools/warp/README.md). The package currently requires Node.js 22 or newer; see `common/tools/warp/package.json` for the authoritative engine range.
 
 While the two formats are largely compatible, a few caveats apply.
 
