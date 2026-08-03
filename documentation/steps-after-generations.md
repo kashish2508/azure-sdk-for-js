@@ -9,7 +9,7 @@ After this finishes, you will see the generated code in `src` folder in your **{
 
 ```shell
 pnpm install
-pnpm turbo build --filter=<your-package-name>...
+pnpm turbo build --filter=<your-package-name>... --token 1
 ```
 
 # Customizing the generated code
@@ -60,15 +60,15 @@ See the [Javascript Codegen Quick Start for Test](https://github.com/Azure/azure
     On Linux, you could use `export` to set env variable:
 
     ```shell
-    pnpm turbo build --filter=${PACKAGE_NAME}...
-    export TEST_MODE=record && pnpm test # this will run live test and generate a recordings folder, you will need to submit it in the PR.
+    pnpm turbo build --filter=${PACKAGE_NAME}... --token 1
+    export TEST_MODE=record && pnpm test # this will run live tests and update recordings, which you must push via asset sync before creating the PR.
     ```
 
     On Windows, you could use `SET`:
 
     ```shell
-    pnpm turbo build --filter=${PACKAGE_NAME}...
-    SET TEST_MODE=record&& pnpm test # this will run live test and generate a recordings folder, you will need to submit it in the PR.
+    pnpm turbo build --filter=${PACKAGE_NAME}... --token 1
+    SET TEST_MODE=record&& pnpm test # this will run live tests and update recordings, which you must push via asset sync before creating the PR.
     ```
 
     You can also run the `playback` mode test if your apis don't have breaking changes and you've already done the recording before.
@@ -76,14 +76,14 @@ See the [Javascript Codegen Quick Start for Test](https://github.com/Azure/azure
     On Linux, you could use below commands:
 
     ```shell
-      pnpm turbo build --filter=${PACKAGE_NAME}...
-    export TEST_MODE=playback && pnpm test # this will run live test and generate a recordings folder, you will need to submit it in the PR.
+      pnpm turbo build --filter=${PACKAGE_NAME}... --token 1
+    export TEST_MODE=playback && pnpm test # this will run playback tests using existing recordings.
     ```
     On Windows, you can use:
 
     ```shell
-    pnpm turbo build --filter=${PACKAGE_NAME}...
-    SET TEST_MODE=playback&& pnpm test # this will run live test and generate a recordings folder, you will need to submit it in the PR.
+    pnpm turbo build --filter=${PACKAGE_NAME}... --token 1
+    SET TEST_MODE=playback&& pnpm test # this will run playback tests using existing recordings.
     ```
 
 # How to write samples
@@ -194,7 +194,7 @@ Now, we can use the exact same steps to build a releasable artifact.
 
 ```shell
 pnpm install
-pnpm turbo build --filter=<your-package-name>...
+pnpm turbo build --filter=<your-package-name>... --token 1
 cd <your-sdk-folder>
 export TEST_MODE=record && pnpm test
 pnpm pack
@@ -274,7 +274,7 @@ Latest changes to the main branch may introduce merge conflicts of `pnpm-lock.ya
 1. checkout to main branch and pull the latest code
 2. checkout the PR's branch
 3. run `git merge main` 
-4. run `git checkout origin/main pnpm-lock.yaml` 
+4. run `git checkout origin/main -- pnpm-lock.yaml` 
 5. run `pnpm install`
 6. push your changes into your PR
 

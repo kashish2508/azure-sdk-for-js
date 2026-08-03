@@ -33,7 +33,7 @@ keyvault@1.0.0 /home/user/my-app
 
 It looks like `node-fetch`, a dependency of `@azure/core-http@2.2.3` is being pulled in _transitively_ via `@azure/keyvault-keys@4.3.0`.
 
-Because I use a lockfile, running `npm install` again will not help me here. But `npm` provides a few utilities that can.
+Because I use a lockfile, re-running my package manager will not help me here. But `npm` provides a few utilities that can.
 
 ### Using `npm audit fix`
 
