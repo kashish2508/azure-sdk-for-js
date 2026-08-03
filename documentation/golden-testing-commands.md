@@ -9,7 +9,7 @@ If you're looking to be onboarded to the asset-sync workflow to push out the tes
 | script name             | What does it do?                                                                                                |
 |:------------------------|:----------------------------------------------------------------------------------------------------------------|
 | `pnpm install`          | Updates dependencies                                                                                            |
-| `pnpm -F {./}... build` | Expected to be run from inside your package(`sdk/service-name/package-name`). Builds the whole dependency tree. |
+| `pnpm turbo build --filter=@azure/<package-name>... --token 1` | Run from the repo root. Builds the package and the local dependency tree. |
 |                         |                                                                                                                 |
 
 ## Commands - to run the tests inside the package directory
@@ -62,7 +62,7 @@ export default mergeConfig(
 ```ts
    it.only("test title...")
 ```
-Run the test command such as `pnpm unit-test:node` to run the test
+Run the test command such as `pnpm test:node` to run the test
 
 [powershell]: https://github.com/PowerShell/PowerShell
 

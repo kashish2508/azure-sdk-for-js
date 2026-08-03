@@ -8,7 +8,7 @@ Getting Started: Generate JS SDK with TypeSpec
 
 ## Prerequisites
 
-- [LTS versions of Node.js](https://github.com/nodejs/release#release-schedule)
+- [LTS versions of Node.js](https://github.com/nodejs/release#release-schedule) supported by this repo (current packages require Node.js 22+)
 - [Git](https://git-scm.com/downloads)
 - Local Clone of Rest API Spec Repo Fork
   - If you don't already have a fork, [Fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo#forking-a-repository) the [Rest API Spec Repo](https://github.com/Azure/azure-rest-api-specs).
@@ -49,7 +49,7 @@ SDK module would be generated under the SDK project folder at `sdk/<service>/<mo
 Install dependencies to use code-gen-pipeline,  
 ```ps
 npm --prefix eng/common/tsp-client ci
-npm install -g pnpm
+corepack enable pnpm
 npm --prefix eng/tools/js-sdk-release-tools ci
 ```
 
