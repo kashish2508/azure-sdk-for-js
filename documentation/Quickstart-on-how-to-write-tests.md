@@ -120,17 +120,17 @@ sdk/
 │  │  │  |  ├─ sampleTest.spec.ts
 ```
 
-You could also refer [here](https://github.com/Azure/azure-sdk-for-js/blob/main/documentation/steps-after-generations.md#how-to-write-test-for-dpgrlcmpg) to add your test cases.
+You could also refer [here](./steps-after-generations.md#how-to-write-test-for-dpgrlcmpg) to add your test cases.
 
 After writing your test cases you need to run your test cases and record the test recordings. See [here](#run-tests-in-record-mode)
 
 ## Run tests in record mode
 
-Before running tests, it's advised to update the dependencies and build our project by running the command `pnpm install && pnpm turbo build --filter=<package-name>...`. Please notice this command is time-consuming and it will take around 10 mins, you could refer [here](https://github.com/Azure/azure-sdk-for-js/blob/main/CONTRIBUTING.md#resolving-dependency-version-conflicts) for more details.
+Before running tests, install dependencies and build the package from the repository root by running `pnpm install` and `pnpm turbo build --filter=<package-name>... --token 1`. This can take several minutes.
 
 ```Shell
 > pnpm install
-> pnpm turbo build --filter=@azure-rest/purview-datamap...
+> pnpm turbo build --filter=@azure-rest/purview-datamap... --token 1
 ```
 
 Then, we could go to the project folder to run the tests. By default, if you don't specify `TEST_MODE`, it will run previously recorded tests.
@@ -217,7 +217,7 @@ Generate an `sdk/<service-folder>/<package-name>/assets.json` file by running th
 npx dev-tool test-proxy init
 ```
 
-Note: If you [install `dev-tool` globally](https://github.com/Azure/azure-sdk-for-js/tree/main/common/tools/dev-tool#installation), you don't need `npx` prefix in the above command
+Note: If you [install `dev-tool` globally](../common/tools/dev-tool/README.md#installation), you do not need the `npx` prefix in the above command
 
 This command would generate an `assets.json` file with an empty tag.
 
@@ -234,7 +234,7 @@ Example `assets.json` with an empty tag:
 
 After `init` the `assets.json` file, [run your test with record mode](#run-tests-in-record-mode)
 
-`Notice`: If you have already run tests in record mode before, you need to re-run the tests again to make sure that your records can be pushed later.
+`Notice`: If you have already run tests in record mode before, re-run the tests to make sure the new recordings are ready to push.
 
 Then, go to the next step to [Existing package - Tests have been pushed before](#existing-package---tests-have-been-pushed-before).
 
