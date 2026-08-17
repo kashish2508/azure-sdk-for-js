@@ -8,7 +8,7 @@ Getting Started: Generate JS SDK with TypeSpec
 
 ## Prerequisites
 
-- [LTS versions of Node.js](https://github.com/nodejs/release#release-schedule)
+- Node.js 22 or newer (the repo currently requires `>=22`; see the root `package.json` and `.nvmrc`)
 - [Git](https://git-scm.com/downloads)
 - Local Clone of Rest API Spec Repo Fork
   - If you don't already have a fork, [Fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo#forking-a-repository) the [Rest API Spec Repo](https://github.com/Azure/azure-rest-api-specs).
@@ -48,9 +48,8 @@ SDK module would be generated under the SDK project folder at `sdk/<service>/<mo
 
 Install dependencies to use code-gen-pipeline,  
 ```ps
-npm --prefix eng/common/tsp-client ci
-npm install -g pnpm
-npm --prefix eng/tools/js-sdk-release-tools ci
+pnpm install
+pnpm --dir eng/tools/js-sdk-release-tools install
 ```
 
 Create a local json file named generatedInput.json with content similar to that shown below
@@ -68,7 +67,7 @@ Create a local json file named generatedInput.json with content similar to that 
 
 Run the command
 ```
-npm --prefix eng/tools/js-sdk-release-tools exec --no -- code-gen-pipeline --inputJsonPath=<path-to-generatedInput.json> --outputJsonPath=<path-to-generatedOutput.json> --typespecEmitter=@azure-tools/typespec-ts --local
+pnpm --dir eng/tools/js-sdk-release-tools exec code-gen-pipeline --inputJsonPath=<path-to-generatedInput.json> --outputJsonPath=<path-to-generatedOutput.json> --typespecEmitter=@azure-tools/typespec-ts --local
 ```
 
 > path-to-generatedOutput.json is the detailed information of generated package, you can ignore it without pipeline. [generateOutput.json](https://github.com/Azure/azure-rest-api-specs/blob/main/documentation/sdkautomation/GenerateOutputSchema.json) is to show us the location of generated artifact and any other messages.
@@ -91,19 +90,19 @@ After all the steps finished, you can prepare the release for this generation. S
 Install `tsp-client` CLI tool
 
 ```ps
-npm --prefix eng/common/tsp-client ci
+pnpm --dir eng/common/tsp-client install
 ```
 
 For initial set up, from the root of the SDK repo, call
 
 ```
-npm --prefix eng/common/tsp-client exec --no -- tsp-client init -c <url-to-tspconfig>
+pnpm --dir eng/common/tsp-client exec tsp-client init -c <url-to-tspconfig>
 ```
 
 For updating TypeSpec generated SDK, call below in the SDK module folder (`sdk/<service>/<module>`) where `tsp-location.yaml` exists
 
 ```ps
-npm --prefix ../../../eng/common/tsp-client exec --no -- tsp-client update
+pnpm --dir ../../../eng/common/tsp-client exec tsp-client update
 ```
 
 **Notice**
