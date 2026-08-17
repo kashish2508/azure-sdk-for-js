@@ -14,7 +14,7 @@ In this document we'll outline a few options available to you when a transitive 
 
 Let's assume that a vulnerability has been found in [node-fetch] version 2.6.6 and that you use `@azure/keyvault-keys` directly. Your security scan identified this vulnerability and asks to upgrade to 2.6.7 or higher.
 
-The outputs below assume you're using `npm v8.1.2` with a lockfile, but we will provide instructions for Yarn as well.
+The outputs below assume you're using `npm` with a lockfile in your own application.
 
 ### Identifying the dependency tree
 
@@ -28,8 +28,6 @@ keyvault@1.0.0 /home/user/my-app
   └─┬ @azure/core-rest-pipeline@1.18.0
     └── node-fetch@2.6.6
 ```
-
-> If you are using Yarn you can use `yarn why node-fetch` with similar results.
 
 It looks like `node-fetch` is being pulled in _transitively_ via `@azure/keyvault-keys@4.3.0`.
 
@@ -59,8 +57,6 @@ As you can see node-fetch has been updated to 2.6.7, without having to wait for 
 
 For more information on `npm audit` please refer to the [npm-audit documentation][npm-audit].
 
-> If you are using Yarn you can use `yarn npm audit` with similar results.
-
 ### Using `npm update`
 
 Not all updates are due to security vulnerabilities. Sometimes you just want to update a transitive dependency without deleting your lockfile. In that case, `npm update node-fetch` can help. Let's see what that looks like:
@@ -82,8 +78,6 @@ keyvault@1.0.0 /home/user/my-app
 ```
 
 Awesome!
-
-> If you are using Yarn you can use `yarn up node-fetch` with similar results.
 
 > Note: In some previous versions of `npm`, `npm update` would only update _top-level_ dependencies. If you're using npm 6.x for example you can provide the `--depth` argument to achieve similar results.
 

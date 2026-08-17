@@ -20,16 +20,16 @@ If the generated code does not fit your needs, you can use the JavaScript custom
 
 Install `js-sdk-release-tools`
 ```
-npm --prefix eng/tools/js-sdk-release-tools ci
+pnpm --dir eng/tools/js-sdk-release-tools install
 ```
 
 After you build your package, run
 ```
-npm --prefix eng/tools/js-sdk-release-tools exec --no -- changelog-tool <your-package-path>
+pnpm --dir eng/tools/js-sdk-release-tools exec changelog-tool <your-package-path>
 ```
 Here is the example
 ```
-npm --prefix eng/tools/js-sdk-release-tools exec --no -- changelog-tool sdk/advisor/arm-advisor
+pnpm --dir eng/tools/js-sdk-release-tools exec changelog-tool sdk/advisor/arm-advisor
 ```
 
 # Improve README.md document
@@ -94,19 +94,22 @@ To learn more, you could refer to the below samples:
 - DPG sample: [the samples of OpenAIClient](https://github.com/Azure/azure-sdk-for-js/tree/main/sdk/openai/openai/samples-dev)
 - RLC sample: [the samples of MapsRouteClient](https://github.com/Azure/azure-sdk-for-js/tree/main/sdk/maps/maps-route-rest/samples-dev)
 
-After the `samples-dev` folder change is finished, you will need to change the `tsconfig.json` to make sure the dev samples can be compiled and build correctly.
+After the `samples-dev` folder change is finished, you will need to ensure a `tsconfig.samples.json` exists to make sure the dev samples can be compiled and build correctly.
 
-You will need to add this part to the `compilerOptions` of your `tsconfig.json` file so that the Samples engine could resolve the `sample-dev` package against the source code of the SDK.
-
-``` json
-    "paths": { "@azure/agrifood-farming": ["./src/index"] }
-```
-
-And change the *"include"* part to
+You will need to create or update `tsconfig.samples.json` in the package root. It should extend the shared base config and add a `paths` entry so that the Samples engine can resolve your package against the built output:
 
 ```json
-  "include": ["./src/**/*.ts", "./test/**/*.ts", "samples-dev/**/*.ts"],
+{
+  "extends": "../../../tsconfig.samples.base.json",
+  "compilerOptions": {
+    "paths": {
+      "@azure/your-package-name": ["./dist/esm"]
+    }
+  }
+}
 ```
+
+Replace `@azure/your-package-name` with your package's name and make sure `tsconfig.json` references this file (it should already do so if the package was generated with the standard scaffolding).
 
 Then, we provide tools to automatically change it into workable samples in both TypeScript and JavaScript. And, you just need to add a `sampleConfiguration` in your `package.json`.
 
