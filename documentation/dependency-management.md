@@ -25,13 +25,13 @@ First, let's see how `node-fetch` is pulled into our dependency tree.
 
 keyvault@1.0.0 /home/user/my-app
 └─┬ @azure/keyvault-keys@4.3.0
-  └─┬ @azure/core-http@2.2.3
+  └─┬ @azure/core-rest-pipeline@1.18.0
     └── node-fetch@2.6.6
 ```
 
 > If you are using Yarn you can use `yarn why node-fetch` with similar results.
 
-It looks like `node-fetch`, a dependency of `@azure/core-http@2.2.3` is being pulled in _transitively_ via `@azure/keyvault-keys@4.3.0`.
+It looks like `node-fetch` is being pulled in _transitively_ via `@azure/keyvault-keys@4.3.0`.
 
 Because I use a lockfile, running `npm install` again will not help me here. But `npm` provides a few utilities that can.
 
@@ -51,11 +51,11 @@ found 0 vulnerabilities
 keyvault main % npm ls node-fetch
 keyvault@1.0.0 /home/user/my-app
 └─┬ @azure/keyvault-keys@4.3.0
-  └─┬ @azure/core-http@2.2.3
+  └─┬ @azure/core-rest-pipeline@1.18.0
     └── node-fetch@2.6.7
 ```
 
-As you can see node-fetch has been updated to 2.6.7, without having to wait for a new version of `@azure/core-http`.
+As you can see node-fetch has been updated to 2.6.7, without having to wait for a new version of the Azure SDK package that brought it in.
 
 For more information on `npm audit` please refer to the [npm-audit documentation][npm-audit].
 
@@ -77,7 +77,7 @@ found 0 vulnerabilities
 keyvault main % npm ls node-fetch
 keyvault@1.0.0 /home/user/my-app
 └─┬ @azure/keyvault-keys@4.3.0
-  └─┬ @azure/core-http@2.2.3
+  └─┬ @azure/core-rest-pipeline@1.18.0
     └── node-fetch@2.6.7
 ```
 

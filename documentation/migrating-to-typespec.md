@@ -22,7 +22,7 @@ Before starting the migration, ensure you have:
 
 1. **TypeSpec definitions ready**: Your service's TypeSpec definitions should be complete and merged into the main branch of the [Azure REST API specs repository](https://github.com/Azure/azure-rest-api-specs)
 2. **Local development environment**:
-   - [Node.js LTS version](https://nodejs.org/en/about/releases/)
+   - Node.js 22 or newer (the repo currently requires `>=22`; see the root `package.json` and `.nvmrc`)
    - Local clone of your fork of [azure-sdk-for-js](https://github.com/Azure/azure-sdk-for-js)
    - Local clone of your fork of [azure-rest-api-specs](https://github.com/Azure/azure-rest-api-specs)
 3. **Understanding of your current SDK**: Know which packages in azure-sdk-for-js belong to your service
@@ -103,7 +103,7 @@ Replace your AutoRest generation script with TypeSpec generation and customizati
     "generate:client": "tsp-client update -d && npm run format && dev-tool customization apply --skip index.ts",
     "build": "npm run clean && dev-tool run build-package && dev-tool run extract-api",
     "test": "npm run test:node && npm run test:browser",
-    "test:node": "dev-tool run build-test --no-browser-test && dev-tool run test:vitest"
+    "test:node": "dev-tool run test:vitest"
   }
 }
 ```
@@ -243,7 +243,7 @@ Delete the following files that are no longer needed:
 2. **Build the package:**
 
    ```bash
-   pnpm turbo build
+   pnpm turbo build --filter=@azure/your-package... --token 1
    ```
 
 3. **Run tests:**
@@ -269,7 +269,7 @@ After migration, your development workflow becomes:
 
 1. **Update TypeSpec definitions** in azure-rest-api-specs
 2. **Generate new code:** `npm run generate:client`
-3. **Build and test:** `pnpm turbo build && pnpm test`
+3. **Build and test:** `pnpm turbo build --filter=@azure/your-package... --token 1 && pnpm test`
 
 ### Version Management
 

@@ -9,15 +9,15 @@ If you're looking to be onboarded to the asset-sync workflow to push out the tes
 | script name             | What does it do?                                                                                                |
 |:------------------------|:----------------------------------------------------------------------------------------------------------------|
 | `pnpm install`          | Updates dependencies                                                                                            |
-| `pnpm -F {./}... build` | Expected to be run from inside your package(`sdk/service-name/package-name`). Builds the whole dependency tree. |
+| `pnpm turbo build --filter=<package-name>... --token 1` | Run from the repo root. Builds the package together with its dependency tree. |
 |                         |                                                                                                                 |
 
 ## Commands - to run the tests inside the package directory
 
 | script name         | command(usually)                     |
 |:--------------------|:-------------------------------------|
-| `pnpm test:browser` | `dev-tool run test:vitest --browser` |
-| `pnpm test:node`    | `dev-tool run test:vitest`           |
+| `pnpm test:browser` | Usually `dev-tool run test:vitest --browser` |
+| `pnpm test:node`    | Usually `dev-tool run test:vitest` or `dev-tool run test:vitest --no-test-proxy` |
 |                        |                                      |
 
 ## After migrating to asset-sync
@@ -62,13 +62,13 @@ export default mergeConfig(
 ```ts
    it.only("test title...")
 ```
-Run the test command such as `pnpm unit-test:node` to run the test
+Run the package's node test command, such as `pnpm test:node`, to run the test.
 
 [powershell]: https://github.com/PowerShell/PowerShell
 
 ## [Method 2] --testNamePattern
 ```bash
-pnpm integration-test:node -- --testNamePattern "simple"
+pnpm test:node -- --testNamePattern "simple"
 ```
 Reference - [Filtering Tests — Introduction to Testing JavaScript with Vitest](https://stevekinney.net/courses/testing/filtering-tests)
 
