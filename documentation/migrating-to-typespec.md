@@ -313,7 +313,7 @@ If you encounter issues during migration:
 
 1. **Check existing documentation:**
    - [Generate code from TypeSpec](https://github.com/Azure/azure-sdk-for-js/blob/main/documentation/Generate-code-from-TypeSpec.md)
-   - [Azure SDK TypeScript Guidelines](https://azure.github.io/azure-sdk/typescript_introduction.html)
+   - [Azure SDK TypeScript Guidelines](https://azure.github.io/azure-sdk/typescript_design.html)
 
 2. **Consult with the team:**
    - Post in the TypeSpec Discussion Teams channel

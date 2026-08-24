@@ -43,7 +43,7 @@ In this document, we will give a brief introduction on how to use the JavaScript
         import { DefaultAzureCredential } from "@azure/identity";
         import{ TargetManagementClient } from "@azure/arm-target";
 
-        const subscriptionId = process.env.SUBSCRIPTION_ID || '';
+        const subscriptionId = process.env.AZURE_SUBSCRIPTION_ID || '';
         const credentials=new DefaultAzureCredential();
 
         async function test() {
@@ -63,7 +63,7 @@ In this document, we will give a brief introduction on how to use the JavaScript
     ```ts
     const client = new ComputeManagementClient(credentials, subscriptionID);
     const result= await client.galleries.beginCreateOrUpdateAndWait(resourceGroupName, galleryName, gallery);
-    const result= await client.galleryImages.begincreateOrUpdateAndWait(resourceGroupName, galleryName, galleryImageName, galleryImage);
+    const result= await client.galleryImages.beginCreateOrUpdateAndWait(resourceGroupName, galleryName, galleryImageName, galleryImage);
     ```
     
 1. Install all the dependencies
