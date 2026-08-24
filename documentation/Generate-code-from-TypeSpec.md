@@ -4,7 +4,7 @@ Getting Started: Generate JS SDK with TypeSpec
 
 # Before you Start
 
-[TypeScript Azure SDK Design Guidelines](https://azure.github.io/azure-sdk/typescript_introduction.html) is the overall design guideline of the client SDK.
+[TypeScript Azure SDK Design Guidelines](https://azure.github.io/azure-sdk/typescript_design.html) is the overall design guideline of the client SDK.
 
 ## Prerequisites
 
