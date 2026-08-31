@@ -132,7 +132,7 @@ In the Copilot Chat panel, use the `@` prefix to summon an agent by name:
   explore the codebase to answer questions.
 - You can ask an agent to review specific files, a git diff, or the entire
   branch.
-- Agents follow the detailed guidance and references in `.github/prompts/`.
+- Agents follow the detailed guidance and references in `.github/instructions/reviewer/` and the agent definition files.
 - Agents respect the same scoping rules as in CI: they ignore `src/generated/`,
   `snippets.spec.ts`, formatting issues, and domains outside their expertise.
 
@@ -152,15 +152,12 @@ Agent definitions and their detailed review guidelines are stored in:
 │   ├── sentinel.agent.md
 │   └── tester.agent.md
 ├── prompts/                         # Detailed review and analysis guidance
-│   ├── architecture-review-guidelines.md
-│   ├── performance-review-guidelines.md
-│   ├── dependency-review-guidelines.md
-│   ├── mgmt-breaking-change-analysis-guidelines.md
-│   ├── mgmt-breaking-change-patterns.md
-│   ├── mgmt-review-guidelines.md
-│   ├── documentation-review-guidelines.md
-│   ├── security-review-guidelines.md
-│   └── test-review-guidelines.md
+│   ├── reviewer/
+│   │   ├── sdk-source.instructions.md
+│   │   ├── documentation.instructions.md
+│   │   ├── dependencies.instructions.md
+│   │   ├── testing.instructions.md
+│   │   └── mgmt-sdk.instructions.md
 └── workflows/                       # CI workflow triggers
     ├── archie.md / archie.lock.yml
     ├── dash.md / dash.lock.yml
@@ -173,15 +170,12 @@ Agent definitions and their detailed review guidelines are stored in:
 
 - **`.github/agents/*.agent.md`** — Defines the agent persona, checklist, scope,
   and output format. Used by both VS Code Copilot Chat and CI workflows.
-- **`.github/prompts/*.md`** — Comprehensive review and analysis guidance plus
-  supporting references used by agents. Edit these to update review criteria or
-  analysis behavior.
+- **`.github/instructions/reviewer/*.instructions.md`** — Canonical review guidance used by agents for architecture, documentation, dependencies, testing, and management SDK checks.
 - **`.github/workflows/*.md`** — Agentic Workflow source files that define the
   CI trigger (label), permissions, and tools. Compiled to `.lock.yml` via
   `gh aw compile`.
 
-To modify an agent's behavior, edit the corresponding `.agent.md` and/or
-guidelines file. For CI trigger changes, edit the workflow `.md` file and
+To modify an agent's behavior, edit the corresponding `.agent.md`, reviewer instruction file, and workflow source as needed. For CI trigger changes, edit the workflow `.md` file and
 recompile with:
 
 ```bash

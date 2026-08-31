@@ -15,7 +15,7 @@ Join the [JavaScript - Reviews](https://teams.microsoft.com/l/channel/19%3a408c5
 
 - [LTS versions of Node.js](https://nodejs.org/en/about/releases/)
 - Install pnpm with the [pnpm installation instructions](https://pnpm.io/installation).
-- Install tsp-client dependencies with `npm --prefix eng/common/tsp-client ci`
+- Run `pnpm install` at the repository root to install `tsp-client` and the rest of the workspace tooling.
 
 # Set up your development environment
 
@@ -65,13 +65,13 @@ The `package name` is used when publishing to [npmjs](https://www.npmjs.com/). I
     For initial set up, use the `tsp-client` CLI tool to initialize the generation process. From the root of your local `azure-sdk-for-js` repository clone, run the following command, replacing `YOUR_REMOTE_TSPCONFIG_URL` with the URL to your TypeSpec configuration file:
 
     ```sh
-    npm --prefix eng/common/tsp-client exec --no -- tsp-client init -c YOUR_REMOTE_TSPCONFIG_URL
+    npm exec --prefix eng/common/tsp-client --no -- tsp-client init -c YOUR_REMOTE_TSPCONFIG_URL
     ```
 
     If you are generating the DPG library for Azure Cognitive Services Content Safety, and your TypeSpec configuration file is located at `https://github.com/Azure/azure-rest-api-specs/blob/46ca83821edd120552403d4d11cf1dd22360c0b5/specification/cognitiveservices/ContentSafety/tspconfig.yaml`, you would initialize the library like this:
 
     ```sh
-    npm --prefix eng/common/tsp-client exec --no -- tsp-client init -c https://github.com/Azure/azure-rest-api-specs/blob/46ca83821edd120552403d4d11cf1dd22360c0b5/specification/cognitiveservices/ContentSafety/tspconfig.yaml
+    npm exec --prefix eng/common/tsp-client --no -- tsp-client init -c https://github.com/Azure/azure-rest-api-specs/blob/46ca83821edd120552403d4d11cf1dd22360c0b5/specification/cognitiveservices/ContentSafety/tspconfig.yaml
     ```
 
     This command sets up your local SDK repository with the necessary structure and files based on your `tspconfig.yaml` file and then generate SDKs with given url typespec.
@@ -89,15 +89,15 @@ The `package name` is used when publishing to [npmjs](https://www.npmjs.com/). I
     Run the `update` command from SDK directory (i.e sdk/agrifood/agrifood-farming) to re-generate the code:
 
     ```sh
-    npm --prefix ../../../eng/common/tsp-client exec --no -- tsp-client update
+    npm exec --prefix ../../../eng/common/tsp-client --no -- tsp-client update
     ```
 
     ---  
     **NOTE**
-    The version of typespec-ts is configured in [emitter-package.json](https://github.com/Azure/azure-sdk-for-js/blob/main/eng/emitter-package.json) and relevant lock file [emitter-package-lock.json](https://github.com/Azure/azure-sdk-for-js/blob/main/eng/emitter-package-lock.json). Change them in local, if you would like to use a different version of typespec-ts.
+    The version of typespec-ts is configured in [emitter-package.json](https://github.com/Azure/azure-sdk-for-js/blob/main/eng/emitter-package.json) and relevant dependency lock data in `pnpm-lock.yaml`. Change the emitter package definitions locally only if you specifically need to test a different `typespec-ts` version.
 
     --- 
 
 # After SDK generation
 
-The generated code is not enough to release at once and you need to update it for better usage experience. Please follow [steps after generation guide](https://github.com/Azure/azure-sdk-for-js/blob/main/documentation/steps-after-generations.md) to check the code.
+The generated code is not enough to release at once and you need to update it for better usage experience. Please follow [steps after generation guide](./steps-after-generations.md) to check the code.

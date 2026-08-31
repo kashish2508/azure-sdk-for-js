@@ -15,7 +15,7 @@ Compared to the current management libraries, the next-generation libraries have
 1. Authentication: The packages `@azure/ms-rest-nodeauth` or `@azure/ms-rest-browserauth` are no longer supported. Use package [@azure/identity](https://www.npmjs.com/package/@azure/identity) instead. Select a credential from Azure Identity examples based on the authentication method of your choice.
 1. Callbacks: Method overloads that use callbacks have been replaced to use Promise instead.
 1. You could iterate the result of List operations by using the `PagedAsyncIterableIterator` interface, compared with in previous model, you have to make a new request using the link to the next page.
-1. Interface and API change for long-running operations: To check the final result of the Poller object returned by long-running operations like `beginCreateOrUpdate`, please use `pollUntilDone` instead of `pollUntilFinished`. To get the final result directly, use the method with the suffix `AndWait` e.g.`beginCreateOrUpdateAndWait`.
+1. Interface and API change for long-running operations: To check the final result of the Poller object returned by long-running operations like `beginCreateOrUpdate`, use `pollUntilDone()` on the returned poller. To get the final result directly, use the `beginCreateOrUpdateAndWait` convenience method.
 1. The SDK only supports ECMAScript 2015 (ES6) and beyond, all projects that referenced this SDK should be upgraded to use ES6.
 
 If you have an existing application that uses the JavaScript/TypeScript Azure SDK packages and you're interested in updating your application to use the next-generation SDKs, here are the things that you need to do for the migration:
@@ -229,7 +229,7 @@ The following table compares `LROPoller` and `PollerLike`:
 
 | operation                                                                  | `LROPoller`                                  | `PollerLike`                                                                                                                                                                                                    |
 |----------------------------------------------------------------------------|----------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| return final results                                                       | `pollUntilFinished()`                        | `pollUntilDone()`                                                                                                                                                                                               |
+| return final results                                                       | `pollUntilDone()`                        | `pollUntilDone()`                                                                                                                                                                                               |
 | poll                                                                       | `poll()`                                     | `poll()`                                                                                                                                                                                                        |
 | access the current state after receiving the response of each poll request | N/A                                          | `onProgress()`                                                                                                                                                                                                  |
 | check whether the operation finished                                       | `isFinished()` / `isFinalStatusAcceptable()` | `isDone()`                                                                                                                                                                                                      |
@@ -268,7 +268,7 @@ const poller = await computeClient.dedicatedHosts.beginCreateOrUpdate(
   parameter
 );
 console.log(`The current status? ${poller.getPollState().state"}`)
-const result = await poller.pollUntilFinished().then((response) => {
+const result = await poller.pollUntilDone().then((response) => {
   console.log(response);
 });
       </pre>

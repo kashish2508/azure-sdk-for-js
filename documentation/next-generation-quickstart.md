@@ -70,7 +70,7 @@ Linux-based OS :
 As an example, to install the Azure Compute module, you would run :
 
 ```sh
-npm i @azure/arm-compute@latest
+npm install @azure/arm-compute@latest
 ```
 
 You can always find the latest preview version of our next-generation management libraries via [npm](https://www.npmjs.com) under the `next` tag of each package.
@@ -78,7 +78,7 @@ You can always find the latest preview version of our next-generation management
 We also recommend installing other packages for authentication and core functionalities :
 
 ```sh
-npm i @azure/identity
+npm install @azure/identity
 ```
 
 ## Authentication

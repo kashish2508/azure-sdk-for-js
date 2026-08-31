@@ -11,7 +11,7 @@ Libraries generated from TypeSpec offer layered APIs, smaller bundles, and clean
 Several packages are already GA, including `@azure/arm-avs`, `@azure/arm-fabric`, `@azure/arm-oracledatabase`, and `@azure/keyvault-admin`. Find the latest versions on **npm**: <https://www.npmjs.com>.
 
 This quickstart walks you through managing Azure resources using a TypeSpec‑generated management library. For an overview, see:  
-<https://devblogs.microsoft.com/azure-sdk/azure-sdk-modularized-libraries-for-javascript/>
+<https://devblogs.microsoft.com/azure-sdk/azure-sdk-libraries-generated-from-typespec-for-javascript/>
 
 ## Migrating from older libraries
 
@@ -39,13 +39,13 @@ These values can be obtained from the portal. You could follow the [instructions
 As an example, to install the latest Azure VMware Solution module, you would run:
 
 ```sh
-npm i @azure/arm-avs@latest
+npm install @azure/arm-avs@latest
 ```
 
 We also recommend installing the authentication package:
 
 ```sh
-npm i @azure/identity
+npm install @azure/identity
 ```
 
 ## Authentication
