@@ -126,11 +126,11 @@ After writing your test cases you need to run your test cases and record the tes
 
 ## Run tests in record mode
 
-Before running tests, it's advised to update the dependencies and build our project by running the command `pnpm install && pnpm turbo build --filter=<package-name>...`. Please notice this command is time-consuming and it will take around 10 mins, you could refer [here](https://github.com/Azure/azure-sdk-for-js/blob/main/CONTRIBUTING.md#resolving-dependency-version-conflicts) for more details.
+Before running tests, it's advised to update the dependencies and build our project by running the command `pnpm install && pnpm turbo build --filter=<package-name>... --token 1`. Please notice this command is time-consuming and it will take around 10 mins, you could refer [here](https://github.com/Azure/azure-sdk-for-js/blob/main/CONTRIBUTING.md#resolving-dependency-version-conflicts) for more details.
 
 ```Shell
 > pnpm install
-> pnpm turbo build --filter=@azure-rest/purview-datamap...
+> pnpm turbo build --filter=@azure-rest/purview-datamap... --token 1
 ```
 
 Then, we could go to the project folder to run the tests. By default, if you don't specify `TEST_MODE`, it will run previously recorded tests.
@@ -140,7 +140,7 @@ Then, we could go to the project folder to run the tests. By default, if you don
 sdk/purview/purview-datamap-rest> pnpm test
 ```
 
-If you are the first time to run tests you may fail with below message because there is no any recordings found.
+If this is your first time running the tests, they may fail with a message like the following because no recordings exist yet.
 
 ```
 [test-info] ===TEST_MODE=undefined===
@@ -183,7 +183,7 @@ This time we could get following similar logs. After pushing, recording files wi
 
 ## Run tests in playback mode
 
-If we have existing recordings, then the tests have been run against generated the HTTP recordings, we can run your tests in `playback` mode.
+If recordings already exist, you can run the tests in `playback` mode against those stored HTTP recordings.
 
 ```Shell
 # Windows with CMD
@@ -201,7 +201,7 @@ If we have existing recordings, then the tests have been run against generated t
 
 ## How to push test recordings to assets repo
 
-We need to push test recording files to [asset repo](https://github.com/Azure/azure-sdk-assets) after testing your test cases.
+After recording tests, push the updated recordings to the [asset repo](https://github.com/Azure/azure-sdk-assets) so your package's `assets.json` stays in sync with the externalized assets store.
 
 `Notice`: Before pushing your recording file, you must confirm that you are able to push recordings to the `azure-sdk-assets` repo, you need write-access to the assets repo. [Permissions to `Azure/azure-sdk-assets`](https://dev.azure.com/azure-sdk/internal/_wiki/wikis/internal.wiki/785/Externalizing-Recordings-(Asset-Sync)?anchor=permissions-to-%60azure/azure-sdk-assets%60)
 

@@ -14,7 +14,7 @@ In this document we'll outline a few options available to you when a transitive 
 
 Let's assume that a vulnerability has been found in [node-fetch] version 2.6.6 and that you use `@azure/keyvault-keys` directly. Your security scan identified this vulnerability and asks to upgrade to 2.6.7 or higher.
 
-The outputs below assume you're using `npm v8.1.2` with a lockfile, but we will provide instructions for Yarn as well.
+The outputs below assume you're using npm in your own application with a lockfile. This repository itself uses pnpm; see [CONTRIBUTING.md](../CONTRIBUTING.md) and [dependency-management.md](https://github.com/Azure/azure-sdk-for-js/blob/main/documentation/dependency-management.md) for repo-specific workflows.
 
 ### Identifying the dependency tree
 
@@ -33,7 +33,7 @@ keyvault@1.0.0 /home/user/my-app
 
 It looks like `node-fetch`, a dependency of `@azure/core-http@2.2.3` is being pulled in _transitively_ via `@azure/keyvault-keys@4.3.0`.
 
-Because I use a lockfile, running `npm install` again will not help me here. But `npm` provides a few utilities that can.
+Because I use a lockfile, running `npm install` again will not help me here. But npm provides a few utilities that can.
 
 ### Using `npm audit fix`
 

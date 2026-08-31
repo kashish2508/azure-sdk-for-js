@@ -17,11 +17,11 @@ Several packages generated from *TypeSpec* have already reached General Availabi
 
 ## Library improvements when generating from *TypeSpec*
 
-We recommend reviewing the [complete guide](https://devblogs.microsoft.com/azure-sdk/azure-sdk-modularized-libraries-for-javascript/) for full details. Compared to libraries generated with *Autorest*, *TypeSpec code generation* has following key benefits:
+We recommend reviewing the [complete guide](https://devblogs.microsoft.com/azure-sdk/azure-sdk-libraries-generated-from-typespec-for-javascript/) for full details. Compared to libraries generated with *Autorest*, *TypeSpec code generation* has following key benefits:
 
 1. Subpath exports: Libraries now leverage [subpath exports](https://nodejs.org/api/packages.html#subpath-exports)(introduced in Node.js version 12.7) to provide layered APIs. This means developer can access the familiar `Client` at the root level while also using the `/api` subpath for fine-grained, operation-level imports.
 1. Bundle size optimization: By leveraging the new `/api` subpath export, developers can selectively import only the operations they need. This approach minimizes the overall library footprint in the application bundle, ensuring that only the required pieces are included.
-1. Long-running operations: Based on customer feedback, we simplified the API to make it cleaner and more ergonomic. Previously, clients exposed two methods for each *long-running operation* (`beginDoSth` and `beginDoSthAndWait`), which often felt redundant and confusing. Libraries generated from *TypeSpec* now provide a single method (`doSth`) that supports both async and sync usage, reducing complexity while improving developer experience.
+1. Long-running operations: some libraries generated from TypeSpec expose a newer single-method LRO shape (`doSth()` returning a Promise-like poller), while others retain compatibility `begin*` helpers. Check the specific package API before migrating code.
 
 
 ## How to migrate to libraries generated from TypeSpec
@@ -76,7 +76,6 @@ const result2 = await poller.pollUntilDone();
 const result = await start();           // awaiting returns the final result
 
 const poller = start();                 // direct access to the poller
-await poller.submitted();               // optional: await initial submission
 const result2 = await poller;           // or: await poller.pollUntilDone()
 ```
 
@@ -89,45 +88,18 @@ TypeSpec‑generated LROs return a `PollerLike`, which is also **Promise‑like*
 | Return final results                        | `pollUntilDone()`             | `pollUntilDone()`       |
 | Poll                                        | `poll()`                      | `poll()`                |
 | Observe progress                            | `onProgress()`                | `onProgress()`          |
-| Check completion                            | `getOperationState().isCompleted`/`isDone()` | `isDone`               |
-| Stop / check stopped                        | `stopPolling()` / `isStopped()` | N/A                   |
-| Read current state                          | `getOperationState()`         | `operationState`        |
-| Access final result                         | `getResult()`                 | `result`                |
-| Serialize poller state                      | `toString()`                  | `serialize()`           |
-| Await initial submission                    | N/A                           | `submitted()`           |
+| Check completion                            | `getOperationState().isCompleted`/`isDone()` | `isDone()`             |
+| Stop / check stopped                        | `stopPolling()` / `isStopped()` | `stopPolling()` / `isStopped()` |
+| Read current state                          | `getOperationState()`         | `getOperationState()`   |
+| Access final result                         | `getResult()`                 | `getResult()`           |
+| Serialize poller state                      | `toString()`                  | `toString()`            |
+| Await initial submission                    | N/A                           | N/A                     |
 
-> **Note:** `getOperationState(): TState` becomes the property `operationState?: TState`. Guard for `undefined` before access:
-
-```ts
-// Before
-const status = poller.getOperationState().status;
-
-// Now
-const status = poller?.operationState?.status;
-```
-
-**Serialization change**
-```ts
-// Before
-const serialized = poller.toString();
-
-// Now
-const serialized = await poller.serialize();
-```
 #### Rehydration (restoring a poller)
 
-Rehydration moved from an operation option (`resumeFrom`) to a **client‑level helper**.
+Rehydration behavior is package-specific. Some TypeSpec-generated packages expose helper functions such as `restorePoller(...)`, while others continue to support `resumeFrom` on operation options. Check the generated package source and README for the exact pattern your package uses.
 
-**Before → After**
-```ts
-// Before (AutoRest-generated)
-const result = await client.beginStartAndWait({ resumeFrom: serializedState });
-
-// After (TypeSpec-generated)
-const result = await restorePoller(client, serializedState, client.start);
-```
-For more detail, see the core‑lro migration guide:  
-https://github.com/Azure/azure-sdk-for-js/blob/main/sdk/core/core-lro/docs/MIGRATION.md
+For more detail on current poller primitives, see the core-lro docs in `sdk/core/core-lro/`.
 
 ---
 
@@ -135,10 +107,9 @@ https://github.com/Azure/azure-sdk-for-js/blob/main/sdk/core/core-lro/docs/MIGRA
 
 - Replace `beginXxxAndWait()` → `await xxx()`.  
 - Replace `await beginXxx()` → `const poller = xxx()`.  
-- Replace `poller.toString()` → `await poller.serialize()`.  
-- Replace `poller.getOperationState()` → `poller.operationState` (guard for `undefined`).  
-- If you previously used `resumeFrom`, switch to `restorePoller(client, serialized, client.xxx)`.  
-- If you depended on `stopPolling()`/`isStopped()`, revisit your control flow (these are not exposed on `PollerLike`).
+- Replace `poller.pollUntilDone()` usage as needed, but keep using `toString()`, `getOperationState()`, `getResult()`, `stopPolling()`, and `isStopped()` when the returned poller type exposes them.
+- If you previously used `resumeFrom`, check whether your generated package still supports it or provides a restore helper.
+- Verify the exact LRO surface in the generated package before making broad migration changes.
 
 ---
 ### List operations (paging)

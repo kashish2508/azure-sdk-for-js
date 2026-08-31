@@ -31,13 +31,13 @@ Before starting the migration, ensure you have:
 
 ### Step 1: Install Required Tools
 
-Install the TypeSpec client generator CLI globally:
+Install the repository dependencies from the repo root instead:
 
 ```bash
-npm install -g @azure-tools/typespec-client-generator-cli
+pnpm install
 ```
 
-For more information on tsp-client, see the [TypeSpec Client Generator CLI documentation](https://aka.ms/azsdk/tsp-client)
+That installs the local `tsp-client` tooling used by this repository. For more information, see the [TypeSpec Client Generator CLI documentation](https://aka.ms/azsdk/tsp-client).
 
 ### Step 2: Add TypeSpec Configuration
 
@@ -100,9 +100,9 @@ Replace your AutoRest generation script with TypeSpec generation and customizati
 ```json
 {
   "scripts": {
-    "generate:client": "tsp-client update -d && npm run format && dev-tool customization apply --skip index.ts",
-    "build": "npm run clean && dev-tool run build-package && dev-tool run extract-api",
-    "test": "npm run test:node && npm run test:browser",
+    "generate:client": "tsp-client update -d && pnpm format && dev-tool customization apply --skip index.ts",
+    "build": "pnpm clean && dev-tool run build-package && dev-tool run extract-api",
+    "test": "pnpm test:node && pnpm test:browser",
     "test:node": "dev-tool run build-test --no-browser-test && dev-tool run test:vitest"
   }
 }
@@ -140,7 +140,7 @@ Run the TypeSpec client generation:
 
 ```bash
 cd sdk/your-service/your-package
-npm run generate:client
+pnpm generate:client
 ```
 
 ### Step 7: Apply Customizations
@@ -237,13 +237,13 @@ Delete the following files that are no longer needed:
 1. **Generate and apply customizations:**
 
    ```bash
-   npm run generate:client
+   pnpm generate:client
    ```
 
 2. **Build the package:**
 
    ```bash
-   pnpm turbo build
+   pnpm turbo build --filter=@azure/your-package... --token 1
    ```
 
 3. **Run tests:**
@@ -268,8 +268,8 @@ Delete the following files that are no longer needed:
 After migration, your development workflow becomes:
 
 1. **Update TypeSpec definitions** in azure-rest-api-specs
-2. **Generate new code:** `npm run generate:client`
-3. **Build and test:** `pnpm turbo build && pnpm test`
+2. **Generate new code:** `pnpm generate:client`
+3. **Build and test:** `pnpm turbo build --filter=@azure/your-package... --token 1 && pnpm test`
 
 ### Version Management
 

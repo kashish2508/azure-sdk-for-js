@@ -4,7 +4,7 @@ In this document, we will give a brief introduction on how to use the JavaScript
 
 1. Prepare your environment.  
     NodeJS: can be installed from https://nodejs.org/en/download/  
-    typescript: install it with `npm install -g typescript`.
+    TypeScript is optional, but if you want to author TypeScript directly you can add it to your sample app with `npm install --save-dev typescript`.
 
 1. Create a empty folder and `cd` this folder.
 
@@ -16,7 +16,7 @@ In this document, we will give a brief introduction on how to use the JavaScript
 1. Initialize a new node project. 
 
     ```
-    npm init
+    npm init -y
     ```
 
     This step will create a `package.json` file in current folder.
